@@ -4,11 +4,36 @@ import (
 	. "prometheus/datastructure"
 )
 
-/**
- * @description: get stored model information
- * @param none
- * @return []ModelStoreInfo
- */
+func GetModelStoreProjectList() []ProjectInfo {
+	return []ProjectInfo{
+		{
+			Id:   0,
+			Name: "Project AA",
+		},
+		{
+			Id:   1,
+			Name: "Project BB",
+		},
+		{
+			Id:   2,
+			Name: "Project CC",
+		},
+	}
+}
+
+func GetModelStoreFileSuffixList() []FileSuffixInfo {
+	return []FileSuffixInfo{
+		{
+			Id:   0,
+			Name: "py",
+		},
+		{
+			Id:   1,
+			Name: "other",
+		},
+	}
+}
+
 func GetModelStoreInfo() []ModelStoreInfo {
 	return []ModelStoreInfo{
 		{
