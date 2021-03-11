@@ -30,6 +30,8 @@ func RouteInit(app *iris.Application) {
 		backendRouter.Get("/getModelStoreInfo", func(ctx iris.Context) {
 			_, err := ctx.JSON(iris.Map{
 				"modelStoreInfo": GetModelStoreInfo(),
+				"projectList":    GetModelStoreProjectList(),
+				"fileSuffixList": GetModelStoreFileSuffixList(),
 			})
 			if err != nil {
 				panic(err)
