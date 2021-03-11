@@ -42,11 +42,6 @@ func GetDataStoreFileSuffixList() []FileSuffixInfo {
 	}
 }
 
-/**
- * @description: get stored data information
- * @param none
- * @return []DataStoreInfo
- */
 func GetDataStoreInfo() []DataStoreInfo {
 	return []DataStoreInfo{
 		{
