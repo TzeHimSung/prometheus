@@ -16,3 +16,6 @@
 
 # vscode
 .vscode
+
+# database configuration
+dboperation/config.json
