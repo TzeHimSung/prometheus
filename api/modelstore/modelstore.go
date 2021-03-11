@@ -1,7 +1,7 @@
 package modelstore
 
 import (
-	. "prometheus/datastructure"
+	. "prometheus/model"
 )
 
 func GetModelStoreProjectList() []ProjectInfo {

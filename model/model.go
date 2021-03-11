@@ -1,4 +1,4 @@
-package datastructure
+package model
 
 type ProjectInfo struct {
 	Id   int    `json:"id"`
