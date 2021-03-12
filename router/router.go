@@ -56,6 +56,23 @@ func RouteInit(app *iris.Application) {
 			}
 		})
 
+		backendRouter.Post("/uploadModel", func(ctx iris.Context) {
+			files, n, err := ctx.UploadFormFiles("./uploads/model")
+			if err != nil {
+				ctx.StopWithStatus(iris.StatusInternalServerError)
+				return
+			}
+			fmt.Printf("%d files of %d total size uploaded!\n", len(files), n)
+			ctx.StatusCode(200)
+			_, err = ctx.JSON(iris.Map{
+				"id":     0,
+				"number": len(files),
+			})
+			if err != nil {
+				panic(err)
+			}
+		})
+
 		backendRouter.Get("/getModelTrainingInfo", func(ctx iris.Context) {
 			_, err := ctx.JSON(iris.Map{
 				"info": "this is a example api",
