@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	. "prometheus/api/datastore"
 	. "prometheus/api/modelstore"
 
@@ -21,6 +22,23 @@ func RouteInit(app *iris.Application) {
 				"dataStoreInfo":  GetDataStoreInfo(),
 				"projectList":    GetDataStoreProjectList(),
 				"fileSuffixList": GetDataStoreFileSuffixList(),
+			})
+			if err != nil {
+				panic(err)
+			}
+		})
+
+		backendRouter.Post("/uploadData", func(ctx iris.Context) {
+			files, n, err := ctx.UploadFormFiles("./uploads/data")
+			if err != nil {
+				ctx.StopWithStatus(iris.StatusInternalServerError)
+				return
+			}
+			fmt.Printf("%d files of %d total size uploaded!\n", len(files), n)
+			ctx.StatusCode(200)
+			_, err = ctx.JSON(iris.Map{
+				"id":     0,
+				"number": len(files),
 			})
 			if err != nil {
 				panic(err)
