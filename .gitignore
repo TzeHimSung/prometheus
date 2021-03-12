@@ -19,3 +19,6 @@
 
 # database configuration
 dboperation/config.json
+
+# upload files
+uploads/*
