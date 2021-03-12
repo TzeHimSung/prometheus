@@ -43,7 +43,7 @@ func readDBConfig() (result string) {
 	return result
 }
 
-func Dbtest() {
+func DbTest() {
 	var dbConfigStr struct {
 		Username string
 		Password string

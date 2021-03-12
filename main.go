@@ -12,7 +12,7 @@ func main() {
 
 	router.RouteInit(app)
 
-	dboperation.Dbtest()
+	dboperation.DbTest()
 
 	if err := app.Run(iris.Addr(":8000")); err != nil {
 		panic(err)
