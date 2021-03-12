@@ -18,10 +18,12 @@ func RouteInit(app *iris.Application) {
 	backendRouter := app.Party("/api", corsConfiguration).AllowMethods(iris.MethodOptions)
 	{
 		backendRouter.Get("/getDataStoreInfo", func(ctx iris.Context) {
+			fileList, fileSuffixList := GetDataStoreInfo()
+			projectList := GetDataStoreProjectList()
 			_, err := ctx.JSON(iris.Map{
-				"dataStoreInfo":  GetDataStoreInfo(),
-				"projectList":    GetDataStoreProjectList(),
-				"fileSuffixList": GetDataStoreFileSuffixList(),
+				"dataStoreInfo":  fileList,
+				"projectList":    projectList,
+				"fileSuffixList": fileSuffixList,
 			})
 			if err != nil {
 				panic(err)
