@@ -5,10 +5,12 @@ go 1.16
 require (
 	github.com/CloudyKit/jet/v6 v6.1.0 // indirect
 	github.com/Shopify/goreferrer v0.0.0-20210305184658-1a4fe54f556d // indirect
+	github.com/akavel/rsrc v0.10.1 // indirect
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/iris-contrib/middleware v12.1.2+incompatible // indirect
 	github.com/iris-contrib/middleware/cors v0.0.0-20210110101738-6d0a4d799b5d // indirect
 	github.com/iris-contrib/middleware/csrf v0.0.0-20210110101738-6d0a4d799b5d // indirect
+	github.com/josephspurrier/goversioninfo v1.2.0 // indirect
 	github.com/kataras/iris/v12 v12.2.0-alpha2.0.20210304161013-7272c76847eb // indirect
 	github.com/klauspost/compress v1.11.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
