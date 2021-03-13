@@ -9,13 +9,22 @@ import (
 	"github.com/kataras/iris/v12"
 )
 
-func RouteInit(app *iris.Application) {
+func Hub(app *iris.Application) {
 	corsConfiguration := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:8080"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 	})
 
-	backendRouter := app.Party("/api", corsConfiguration).AllowMethods(iris.MethodOptions)
+	mainRouter := app.Party("/", corsConfiguration).AllowMethods(iris.MethodOptions)
+
+	homeRouter := mainRouter.Party("/")
+	homeRouter.Get("/", func(ctx iris.Context) {
+		ctx.View("index.html")
+	})
+
+	backendRouter := mainRouter.Party("/api", corsConfiguration).AllowMethods(iris.MethodOptions)
 	{
 		backendRouter.Get("/getDataStoreInfo", func(ctx iris.Context) {
 			fileList, fileSuffixList := GetDataStoreInfo()

@@ -11,9 +11,12 @@ import (
 func main() {
 	app := iris.New()
 
-	router.RouteInit(app)
+	router.Hub(app)
 
 	dboperation.DbTest()
+
+	app.RegisterView(iris.HTML("dist", ".html"))
+	app.HandleDir("/static", "dist/static")
 
 	if err := app.Run(iris.Addr(":8000")); err != nil {
 		panic(err)
