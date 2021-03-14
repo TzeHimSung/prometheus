@@ -10,8 +10,9 @@ import (
 )
 
 func Hub(app *iris.Application) {
+	// configure it for separation of frontend and backend development
 	corsConfiguration := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:8080"},
+		AllowedOrigins:   []string{"http://localhost:8080", "http://localhost:8000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
@@ -20,13 +21,17 @@ func Hub(app *iris.Application) {
 	mainRouter := app.Party("/", corsConfiguration).AllowMethods(iris.MethodOptions)
 
 	homeRouter := mainRouter.Party("/")
-	homeRouter.Get("/", func(ctx iris.Context) {
-		ctx.View("index.html")
-	})
-
-	backendRouter := mainRouter.Party("/api", corsConfiguration).AllowMethods(iris.MethodOptions)
 	{
-		backendRouter.Get("/getDataStoreInfo", func(ctx iris.Context) {
+		homeRouter.Get("/", func(ctx iris.Context) {
+			if err := ctx.View("index.html"); err != nil {
+				ctx.StopWithStatus(iris.StatusInternalServerError)
+			}
+		})
+	}
+
+	dataStoreRouter := mainRouter.Party("/api")
+	{
+		dataStoreRouter.Get("/getDataStoreInfo", func(ctx iris.Context) {
 			fileList, fileSuffixList := GetDataStoreInfo()
 			projectList := GetDataStoreProjectList()
 			_, err := ctx.JSON(iris.Map{
@@ -39,7 +44,7 @@ func Hub(app *iris.Application) {
 			}
 		})
 
-		backendRouter.Post("/uploadData", func(ctx iris.Context) {
+		dataStoreRouter.Post("/uploadData", func(ctx iris.Context) {
 			files, n, err := ctx.UploadFormFiles("./uploads/data")
 			if err != nil {
 				ctx.StopWithStatus(iris.StatusInternalServerError)
@@ -55,8 +60,11 @@ func Hub(app *iris.Application) {
 				panic(err)
 			}
 		})
+	}
 
-		backendRouter.Get("/getModelStoreInfo", func(ctx iris.Context) {
+	modelStoreRouter := mainRouter.Party("/api")
+	{
+		modelStoreRouter.Get("/getModelStoreInfo", func(ctx iris.Context) {
 			_, err := ctx.JSON(iris.Map{
 				"modelStoreInfo": GetModelStoreInfo(),
 				"projectList":    GetModelStoreProjectList(),
@@ -67,7 +75,7 @@ func Hub(app *iris.Application) {
 			}
 		})
 
-		backendRouter.Post("/uploadModel", func(ctx iris.Context) {
+		modelStoreRouter.Post("/uploadModel", func(ctx iris.Context) {
 			files, n, err := ctx.UploadFormFiles("./uploads/model")
 			if err != nil {
 				ctx.StopWithStatus(iris.StatusInternalServerError)
@@ -83,8 +91,11 @@ func Hub(app *iris.Application) {
 				panic(err)
 			}
 		})
+	}
 
-		backendRouter.Get("/getModelTrainingInfo", func(ctx iris.Context) {
+	modelTrainingRouter := mainRouter.Party("/api")
+	{
+		modelTrainingRouter.Get("/getModelTrainingInfo", func(ctx iris.Context) {
 			_, err := ctx.JSON(iris.Map{
 				"info": "this is a example api",
 			})
@@ -92,8 +103,11 @@ func Hub(app *iris.Application) {
 				panic(err)
 			}
 		})
+	}
 
-		backendRouter.Get("/getModelAppInfo", func(ctx iris.Context) {
+	modelAppRouter := mainRouter.Party("/api")
+	{
+		modelAppRouter.Get("/getModelAppInfo", func(ctx iris.Context) {
 			_, err := ctx.JSON(iris.Map{
 				"info": "this is a example api",
 			})
