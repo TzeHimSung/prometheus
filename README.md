@@ -48,7 +48,7 @@ go build
 
 #### Windows
 ```shell
-# add -initdb tag if launch for first time
+# add -initdb tag when launching for first time
 prometheus.exe -initdb -runserver
 ```
 
