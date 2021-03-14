@@ -3,9 +3,9 @@ Backend project of code:phoenix.
 
 ## Deploy requirement
 
-- Go 1.16
-- Node.js 14.15.4
-- MySQL 5.7
+- [Go](https://golang.org/) 1.16
+- [Node.js](https://nodejs.org/) 14.15.4
+- [MySQL](https://downloads.mysql.com/archives/installer/) 5.7
 
 ## Installation
 
