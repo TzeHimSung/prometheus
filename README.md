@@ -5,7 +5,7 @@ Backend project of code:phoenix.
 
 - Go 1.16
 - Node.js 14.15.4
-- Mysql 5.7
+- MySQL 5.7
 
 ## Installation
 
@@ -37,11 +37,24 @@ npm run build
 
 then move `dist` folder to prometheus root path
 
-### Launch backend project
+### Build backend project
 
 ```shell
 go generate
 go build
 ```
 
-launch the `prometheus` binary file and visit `http://localhost:8000/` 
+### Launch
+
+#### Windows
+```shell
+# add -initdb tag if launch for first time
+prometheus.exe -initdb -runserver
+```
+
+#### Linux
+```shell
+./prometheus -initdb -runserver
+```
+
+Open your browser and visit `http://localhost:8000/`.
