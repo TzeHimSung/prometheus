@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DBConfigPath = "./dboperation/config.json"
+	DBConfigPath = "./config.json"
 )
 
 type User struct {
