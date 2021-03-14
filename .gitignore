@@ -18,7 +18,7 @@
 .vscode
 
 # database configuration
-dboperation/config.json
+config.json
 
 # upload files
 uploads/*
