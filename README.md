@@ -17,6 +17,11 @@ git clone https://github.com/TzeHimSung/phoenix-eye.git
 ```
 
 ### Set database configuration
+create database `prometheus`
+```mysql
+CREATE DATABASE `prometheus` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+```
+
 create `config.json` at prometheus root path
 ```json
 {
@@ -25,7 +30,7 @@ create `config.json` at prometheus root path
   "network": "tcp",
   "server": "localhost",
   "port": 3306,
-  "database": "databaseName"
+  "database": "prometheus"
 }
 ```
 
