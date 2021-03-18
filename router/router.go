@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"github.com/kataras/golog"
 	. "prometheus/api/datastore"
 	. "prometheus/api/modelstore"
 
@@ -60,6 +61,19 @@ func Hub(app *iris.Application) {
 				panic(err)
 			}
 		})
+
+		dataStoreRouter.Post("/downloadData", func(ctx iris.Context) {
+			var fileJson struct {
+				Filename string `json:"filename"`
+			}
+			if err := ctx.ReadJSON(&fileJson); err != nil {
+				panic(err)
+			}
+			golog.Info(fileJson.Filename)
+			if err := ctx.SendFile("./uploads/data/"+fileJson.Filename, fileJson.Filename); err != nil {
+				panic(err)
+			}
+		})
 	}
 
 	modelStoreRouter := mainRouter.Party("/api")
@@ -88,6 +102,19 @@ func Hub(app *iris.Application) {
 				"number": len(files),
 			})
 			if err != nil {
+				panic(err)
+			}
+		})
+
+		modelStoreRouter.Post("/downloadModel", func(ctx iris.Context) {
+			var fileJson struct {
+				Filename string `json:"filename"`
+			}
+			if err := ctx.ReadJSON(&fileJson); err != nil {
+				panic(err)
+			}
+			golog.Info(fileJson.Filename)
+			if err := ctx.SendFile("./uploads/model/"+fileJson.Filename, fileJson.Filename); err != nil {
 				panic(err)
 			}
 		})
