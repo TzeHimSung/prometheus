@@ -1,6 +1,10 @@
 # prometheus
 Backend project of code:phoenix.
 
+## Introduction
+
+This part will be released after project's achievement.
+
 ## Deploy requirement
 
 - [Go](https://golang.org/) 1.16
