@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/kataras/golog"
 	"os"
+	"os/exec"
 	. "prometheus/api/datastore"
 	. "prometheus/api/modelstore"
 
@@ -202,6 +203,28 @@ func Hub(app *iris.Application) {
 
 	modelTrainingRouter := mainRouter.Party("/api")
 	{
+		modelTrainingRouter.Post("/launchtest", func(ctx iris.Context) {
+			var modelJson struct {
+				Modelname string `json:"modelname"`
+			}
+			if err := ctx.ReadJSON(&modelJson); err != nil {
+				panic(err)
+			}
+			c := "python " + modelJson.Modelname
+			cmd := exec.Command("sh", c)
+			out, err := cmd.Output()
+			if err != nil {
+				panic(err)
+			}
+			_, err = ctx.JSON(iris.Map{
+				"status": 0,
+				"output": out,
+			})
+			if err != nil {
+				panic(err)
+			}
+		})
+
 		modelTrainingRouter.Get("/getModelTrainingInfo", func(ctx iris.Context) {
 			_, err := ctx.JSON(iris.Map{
 				"info": "this is a example api",
