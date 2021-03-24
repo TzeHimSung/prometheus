@@ -28,3 +28,6 @@ resource.syso
 
 # vue static resource
 dist
+
+# model output
+runmodel/output
