@@ -3,9 +3,9 @@ package router
 import (
 	"github.com/kataras/golog"
 	"os"
-	"os/exec"
 	. "prometheus/api/datastore"
 	. "prometheus/api/modelstore"
+	"prometheus/runmodel"
 
 	"github.com/iris-contrib/middleware/cors"
 	"github.com/kataras/iris/v12"
@@ -203,6 +203,8 @@ func Hub(app *iris.Application) {
 
 	modelTrainingRouter := mainRouter.Party("/api")
 	{
+		// launch model with exec
+		// need to be abandoned
 		modelTrainingRouter.Post("/launchtest", func(ctx iris.Context) {
 			var modelJson struct {
 				Modelname string `json:"modelname"`
@@ -210,15 +212,10 @@ func Hub(app *iris.Application) {
 			if err := ctx.ReadJSON(&modelJson); err != nil {
 				panic(err)
 			}
-			c := "python " + modelJson.Modelname
-			cmd := exec.Command("sh", c)
-			out, err := cmd.Output()
-			if err != nil {
-				panic(err)
-			}
-			_, err = ctx.JSON(iris.Map{
-				"status": 0,
-				"output": out,
+			go runmodel.Launch(modelJson.Modelname)
+			_, err := ctx.JSON(iris.Map{
+				"status":  0,
+				"message": "model is launched",
 			})
 			if err != nil {
 				panic(err)
