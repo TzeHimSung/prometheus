@@ -1,4 +1,4 @@
-package dboperation
+package database
 
 import (
 	"bufio"
@@ -43,7 +43,7 @@ func readDBConfig() (result string) {
 	return result
 }
 
-func DbTest() {
+func TestConnection() {
 	var dbConfigStr struct {
 		Username string
 		Password string
