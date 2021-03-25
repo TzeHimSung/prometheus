@@ -5,7 +5,7 @@ import (
 	"os"
 	. "prometheus/api/datastore"
 	. "prometheus/api/modelstore"
-	"prometheus/runmodel"
+	. "prometheus/api/modeltraining"
 
 	"github.com/iris-contrib/middleware/cors"
 	"github.com/kataras/iris/v12"
@@ -212,10 +212,10 @@ func Hub(app *iris.Application) {
 			if err := ctx.ReadJSON(&modelJson); err != nil {
 				panic(err)
 			}
-			go runmodel.Launch(modelJson.Modelname)
+			go LaunchModel(modelJson.Modelname)
 			_, err := ctx.JSON(iris.Map{
 				"status":  0,
-				"message": "model is launched",
+				"message": "Model " + modelJson.Modelname + " is launched.",
 			})
 			if err != nil {
 				panic(err)
@@ -225,6 +225,23 @@ func Hub(app *iris.Application) {
 		modelTrainingRouter.Get("/getModelTrainingInfo", func(ctx iris.Context) {
 			_, err := ctx.JSON(iris.Map{
 				"info": "this is a example api",
+			})
+			if err != nil {
+				panic(err)
+			}
+		})
+
+		modelTrainingRouter.Post("/killModel", func(ctx iris.Context) {
+			var modelJson struct {
+				Modelname string `json:"modelname"`
+			}
+			if err := ctx.ReadJSON(&modelJson); err != nil {
+				panic(err)
+			}
+			// todo: kill model operation here
+			_, err := ctx.JSON(iris.Map{
+				"status":  0,
+				"message": "Model " + modelJson.Modelname + " has been killed.",
 			})
 			if err != nil {
 				panic(err)
