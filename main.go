@@ -3,7 +3,7 @@ package main
 
 import (
 	"flag"
-	"prometheus/dboperation"
+	db "prometheus/api/database"
 	"prometheus/router"
 
 	"github.com/kataras/golog"
@@ -22,7 +22,7 @@ func main() {
 	router.Hub(app)
 
 	if *initDB {
-		dboperation.DbTest()
+		db.TestConnection()
 	}
 
 	if *runServer {
