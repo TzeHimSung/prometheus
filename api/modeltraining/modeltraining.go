@@ -1,6 +1,7 @@
 package modeltraining
 
 import (
+	"context"
 	"github.com/kataras/golog"
 	"os"
 	"os/exec"
@@ -48,5 +49,18 @@ func LaunchModel(filename string) {
 			panic(err)
 		}
 		golog.Info("Output file is created.")
+	}
+}
+
+func LaunchTest(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			golog.Println("Launch process is canceled.")
+			return
+		default:
+			golog.Println("Launch process is running")
+			time.Sleep(1 * time.Second)
+		}
 	}
 }
