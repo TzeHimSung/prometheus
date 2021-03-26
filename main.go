@@ -3,15 +3,11 @@ package main
 
 import (
 	"flag"
-	db "prometheus/api/database"
-	"prometheus/router"
-
 	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12"
+	db "prometheus/api/database"
+	"prometheus/router"
 )
-
-var initDB = flag.Bool("initdb", false, "初始化数据库")
-var runServer = flag.Bool("runserver", false, "启动服务")
 
 func main() {
 	// parse arguments
@@ -19,21 +15,23 @@ func main() {
 
 	app := iris.New()
 
-	router.Hub(app)
-
-	if *initDB {
-		db.TestConnection()
+	// database init
+	_, err := db.InitDatabase()
+	if err != nil {
+		panic(err)
 	}
 
-	if *runServer {
-		golog.SetLevel("debug")
-		golog.Info("prometheus is launching...")
+	// router init
+	router.Hub(app)
 
-		app.RegisterView(iris.HTML("dist", ".html"))
-		app.HandleDir("/static", "dist/static")
+	// launch server
+	golog.SetLevel("debug")
+	golog.Info("prometheus is launching...")
 
-		if err := app.Run(iris.Addr(":8000")); err != nil {
-			panic(err)
-		}
+	app.RegisterView(iris.HTML("dist", ".html"))
+	app.HandleDir("/static", "dist/static")
+
+	if err := app.Run(iris.Addr(":8000")); err != nil {
+		panic(err)
 	}
 }
