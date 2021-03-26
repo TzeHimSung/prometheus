@@ -1,7 +1,7 @@
 package datastore
 
 import (
-	"io/ioutil"
+	"prometheus/api/database"
 	. "prometheus/model"
 	"strings"
 )
@@ -28,29 +28,21 @@ func GetDataStoreProjectList() []ProjectInfo {
 }
 
 func GetDataStoreInfo() ([]DataStoreInfo, []FileSuffixInfo) {
-	fileList, fileSuffixList := make([]DataStoreInfo, 0, 10), make([]string, 0, 10)
-
-	dir, err := ioutil.ReadDir("./uploads/data")
+	// load file list data from database
+	fileList, err := database.QueryUploadDataLog()
 	if err != nil {
 		panic(err)
 	}
 
-	for _, file := range dir {
-		if file.IsDir() {
-			continue
-		}
-		fileList = append(fileList, DataStoreInfo{
-			FileName:   file.Name(),
-			Source:     "user upload",
-			Status:     "已上传",
-			CreateTime: "2021-03-08 00:00:00",
-		})
-		fileSuffixList = append(fileSuffixList, strings.Split(file.Name(), ".")[len(strings.Split(file.Name(), "."))-1])
+	// get file suffix
+	fileSuffixList := make([]string, 0, 10)
+	for _, file := range fileList {
+		fileSuffixList = append(fileSuffixList, strings.Split(file.FileName, ".")[len(strings.Split(file.FileName, "."))-1])
 	}
 
+	// remove duplicated file suffix
 	resultFileSuffixList := make([]FileSuffixInfo, 0, len(fileSuffixList))
 	tempMap := map[string]struct{}{}
-
 	suffixCount := 0
 	for _, item := range fileSuffixList {
 		if _, ok := tempMap[item]; !ok {

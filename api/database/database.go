@@ -91,6 +91,15 @@ func InitDatabase() (bool, error) {
 	return true, nil
 }
 
+func QueryUploadDataLog() ([]model.DataStoreInfo, error) {
+	dataLog := make([]model.DataStoreInfo, 0)
+	err := dbEngine.Find(&dataLog)
+	if err != nil {
+		return nil, err
+	}
+	return dataLog, nil
+}
+
 func AddUploadDataLog(filename string) (bool, error) {
 	newFile := model.DataStoreInfo{
 		FileName: filename,
@@ -113,6 +122,15 @@ func DeleteUploadDataLog(filename string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func QueryUploadModelLog() ([]model.ModelStoreInfo, error) {
+	modelLog := make([]model.ModelStoreInfo, 0)
+	err := dbEngine.Find(&modelLog)
+	if err != nil {
+		return nil, err
+	}
+	return modelLog, nil
 }
 
 func AddUploadModelLog(filename string) (bool, error) {
