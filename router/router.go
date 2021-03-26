@@ -1,14 +1,23 @@
 package router
 
 import (
+	"context"
 	"github.com/kataras/golog"
 	"os"
+	"prometheus/api/database"
 	. "prometheus/api/datastore"
 	. "prometheus/api/modelstore"
 	. "prometheus/api/modeltraining"
+	"prometheus/model"
+	"time"
 
 	"github.com/iris-contrib/middleware/cors"
 	"github.com/kataras/iris/v12"
+)
+
+var (
+	ModelID          = 0
+	RunningModelList = make([]model.RunningModel, 0)
 )
 
 func Hub(app *iris.Application) {
@@ -56,6 +65,13 @@ func Hub(app *iris.Application) {
 			for i := 0; i < len(files); i++ {
 				fileList = append(fileList, files[i].Filename)
 			}
+
+			// add upload data log to database
+			_, err = database.AddUploadDataLog(fileList[0])
+			if err != nil {
+				panic(err)
+			}
+
 			ctx.StatusCode(200)
 			_, err = ctx.JSON(iris.Map{
 				"id":       0,
@@ -74,7 +90,7 @@ func Hub(app *iris.Application) {
 			if err := ctx.ReadJSON(&fileJson); err != nil {
 				panic(err)
 			}
-			golog.Info(fileJson.Filename)
+			golog.Info("Download data: " + fileJson.Filename)
 			if err := ctx.SendFile("./uploads/data/"+fileJson.Filename, fileJson.Filename); err != nil {
 				panic(err)
 			}
@@ -94,9 +110,9 @@ func Hub(app *iris.Application) {
 					panic(err)
 				}
 			}
-			golog.Info(fileJson.Filename)
+			golog.Info("Delete data: " + fileJson.Filename)
 			if err := os.Remove("./uploads/data/" + fileJson.Filename); err != nil {
-				_, err := ctx.JSON(iris.Map{
+				_, err = ctx.JSON(iris.Map{
 					"id":      1,
 					"status":  "error",
 					"message": err,
@@ -105,7 +121,12 @@ func Hub(app *iris.Application) {
 					panic(err)
 				}
 			}
-			_, err := ctx.JSON(iris.Map{
+			// delete upload data log
+			_, err := database.DeleteUploadDataLog(fileJson.Filename)
+			if err != nil {
+				panic(err)
+			}
+			_, err = ctx.JSON(iris.Map{
 				"id":      0,
 				"status":  "success",
 				"message": "",
@@ -141,6 +162,13 @@ func Hub(app *iris.Application) {
 			for i := 0; i < len(files); i++ {
 				fileList = append(fileList, files[i].Filename)
 			}
+
+			// add upload model log to database
+			_, err = database.AddUploadModelLog(fileList[0])
+			if err != nil {
+				panic(err)
+			}
+
 			ctx.StatusCode(200)
 			_, err = ctx.JSON(iris.Map{
 				"id":       0,
@@ -190,7 +218,12 @@ func Hub(app *iris.Application) {
 					panic(err)
 				}
 			}
-			_, err := ctx.JSON(iris.Map{
+			// delete upload model log
+			_, err := database.DeleteUploadModelLog(fileJson.Filename)
+			if err != nil {
+				panic(err)
+			}
+			_, err = ctx.JSON(iris.Map{
 				"id":      0,
 				"status":  "success",
 				"message": "",
@@ -212,6 +245,7 @@ func Hub(app *iris.Application) {
 			if err := ctx.ReadJSON(&modelJson); err != nil {
 				panic(err)
 			}
+
 			go LaunchModel(modelJson.Modelname)
 			_, err := ctx.JSON(iris.Map{
 				"status":  0,
@@ -220,6 +254,24 @@ func Hub(app *iris.Application) {
 			if err != nil {
 				panic(err)
 			}
+		})
+
+		modelTrainingRouter.Post("/launchcanceltest", func(ctx iris.Context) {
+			modelctx, cancel := context.WithCancel(context.Background())
+
+			// append running model list
+			RunningModelList = append(RunningModelList, model.RunningModel{
+				Id:         ModelID,
+				ScriptName: "test script",
+				Ctx:        &modelctx,
+				CancelFunc: &cancel,
+			})
+
+			go LaunchTest(modelctx)
+
+			time.Sleep(5 * time.Second)
+
+			cancel()
 		})
 
 		modelTrainingRouter.Get("/getModelTrainingInfo", func(ctx iris.Context) {
