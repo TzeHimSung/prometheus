@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/kataras/golog"
 	"io"
 	"os"
 	"prometheus/model"
@@ -43,6 +44,7 @@ func readDBConfig() (result string) {
 }
 
 func InitDatabase() (bool, error) {
+	golog.Info("Start database initialization progress...")
 	// read database config (config.json at project root path)
 	var dbConfigStr struct {
 		Username string
@@ -57,6 +59,7 @@ func InitDatabase() (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	golog.Info("Database configuration loaded.")
 
 	// generate database driver configuration
 	dsn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s", dbConfigStr.Username, dbConfigStr.Password, dbConfigStr.Network,
@@ -67,6 +70,7 @@ func InitDatabase() (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	golog.Info("Database engine is generated.")
 
 	// database engine configuration
 	dbEngine.ShowSQL(true)                                      // print generated SQL in terminal
@@ -76,6 +80,7 @@ func InitDatabase() (bool, error) {
 	dbEngine.TZLocation, _ = time.LoadLocation("Asia/Shanghai") // set time zone
 
 	// test create table
+	golog.Info("Start syncing database tables...")
 	err = dbEngine.Sync2(new(model.DataStoreInfo))
 	if err != nil {
 		return false, err
@@ -88,6 +93,8 @@ func InitDatabase() (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	golog.Info("Database tables are synced.")
+
 	return true, nil
 }
 
