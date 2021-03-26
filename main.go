@@ -2,17 +2,19 @@
 package main
 
 import (
-	"flag"
+	"fmt"
 	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12"
 	db "prometheus/api/database"
 	"prometheus/router"
 )
 
-func main() {
-	// parse arguments
-	flag.Parse()
+const (
+	ListenPort = 8000
+)
 
+func main() {
+	// get iris app object
 	app := iris.New()
 
 	// database init
@@ -24,14 +26,16 @@ func main() {
 	// router init
 	router.Hub(app)
 
-	// launch server
+	// golog configuration
 	golog.SetLevel("debug")
 	golog.Info("prometheus is launching...")
 
+	// register Vue dist and static resource path
 	app.RegisterView(iris.HTML("dist", ".html"))
 	app.HandleDir("/static", "dist/static")
 
-	if err := app.Run(iris.Addr(":8000")); err != nil {
+	// launch server
+	if err := app.Run(iris.Addr(fmt.Sprintf(":%d", ListenPort))); err != nil {
 		panic(err)
 	}
 }
