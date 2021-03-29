@@ -1,19 +1,8 @@
 package model
 
 import (
-	"context"
 	"time"
 )
-
-type ProjectInfo struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-type FileSuffixInfo struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
-}
 
 type DataStoreInfo struct {
 	FileName   string    `json:"fileName" xorm:"varchar(255)"`
@@ -29,9 +18,8 @@ type ModelStoreInfo struct {
 	CreateTime time.Time `json:"createTime" xorm:"created"`
 }
 
-type RunningModel struct {
-	Id         int    `xorm:"int"`
-	ScriptName string `xorm:"varchar(255)"`
-	Ctx        *context.Context
-	CancelFunc *context.CancelFunc
+type RunningModelInfo struct {
+	Id         int       `json:"id" xorm:"int"`
+	ScriptName string    `json:"scriptName" xorm:"varchar(255)"`
+	LaunchTime time.Time `json:"launchTime" xorm:"created"`
 }
