@@ -18,8 +18,11 @@
   - ~~load file info~~
   - ~~upload and download file~~
   - search file
+- database connection
+  - ~~xorm~~
 - research model training plan
-  - docker?
+  - ~~goroutine context demo~~
+  - multi-routine control
 
 ## April
 - achieve model training page
