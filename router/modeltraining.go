@@ -88,8 +88,10 @@ func ModelTrainingInit(modelTrainingRouter iris.Party) {
 
 		// kill model
 		findModelFlag := false
-		for _, runningModel := range RunningModelList {
+		var modelIdx int = 0
+		for idx, runningModel := range RunningModelList {
 			if runningModel.Id == modelInfo.Id {
+				modelIdx = idx
 				go runningModel.CancelFunc()
 
 				// add kill model log to database
@@ -112,6 +114,9 @@ func ModelTrainingInit(modelTrainingRouter iris.Party) {
 				panic(err)
 			}
 		}
+
+		// remove running model log
+		RunningModelList = append(RunningModelList[:modelIdx], RunningModelList[modelIdx+1:]...)
 
 		// return response
 		_, err := ctx.JSON(iris.Map{
