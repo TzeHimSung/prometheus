@@ -15,7 +15,6 @@ import (
 
 const (
 	DBConfigPath = "./config.json"
-	TimeFormat   = "2006-01-02 15:04:05"
 )
 
 var dbEngine *xorm.Engine
@@ -89,7 +88,7 @@ func InitDatabase() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	err = dbEngine.Sync2(new(model.RunningModel))
+	err = dbEngine.Sync2(new(model.RunningModelInfo))
 	if err != nil {
 		return false, err
 	}
@@ -99,6 +98,7 @@ func InitDatabase() (bool, error) {
 }
 
 func QueryUploadDataLog() ([]model.DataStoreInfo, error) {
+	// get all data upload info from database
 	dataLog := make([]model.DataStoreInfo, 0)
 	err := dbEngine.Find(&dataLog)
 	if err != nil {
@@ -108,6 +108,7 @@ func QueryUploadDataLog() ([]model.DataStoreInfo, error) {
 }
 
 func AddUploadDataLog(filename string) (bool, error) {
+	// add data upload info to database
 	newFile := model.DataStoreInfo{
 		FileName: filename,
 		Source:   "User upload",
@@ -121,6 +122,7 @@ func AddUploadDataLog(filename string) (bool, error) {
 }
 
 func DeleteUploadDataLog(filename string) (bool, error) {
+	// delete data upload info from database
 	dataFile := model.DataStoreInfo{
 		FileName: filename,
 	}
@@ -132,6 +134,7 @@ func DeleteUploadDataLog(filename string) (bool, error) {
 }
 
 func QueryUploadModelLog() ([]model.ModelStoreInfo, error) {
+	// get all model upload info from database
 	modelLog := make([]model.ModelStoreInfo, 0)
 	err := dbEngine.Find(&modelLog)
 	if err != nil {
@@ -141,6 +144,7 @@ func QueryUploadModelLog() ([]model.ModelStoreInfo, error) {
 }
 
 func AddUploadModelLog(filename string) (bool, error) {
+	// add model upload info to database
 	newFile := model.ModelStoreInfo{
 		FileName: filename,
 		Source:   "User upload",
@@ -154,10 +158,53 @@ func AddUploadModelLog(filename string) (bool, error) {
 }
 
 func DeleteUploadModelLog(filename string) (bool, error) {
+	// delete model upload info from database
 	dataFile := model.ModelStoreInfo{
 		FileName: filename,
 	}
 	_, err := dbEngine.Delete(&dataFile)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func QueryFinishedModelLog() ([]model.RunningModelInfo, error) {
+	// get all finished model info from database
+	modelLog := make([]model.RunningModelInfo, 0)
+	err := dbEngine.Find(&modelLog)
+	if err != nil {
+		return nil, err
+	}
+	return modelLog, nil
+}
+
+func AddFinishedModelLog(modelID int, modelname string, launchTime time.Time) (bool, error) {
+	// add finished model log to database
+	modelLog := model.RunningModelInfo{
+		Id:         modelID,
+		ScriptName: modelname,
+		Status:     "Finished",
+		LaunchTime: launchTime,
+		FinishTime: time.Now(),
+	}
+	_, err := dbEngine.Insert(&modelLog)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func AddKilledModelLog(modelID int, modelname string, launchTime time.Time) (bool, error) {
+	// add killed model log to database
+	modelLog := model.RunningModelInfo{
+		Id:         modelID,
+		ScriptName: modelname,
+		Status:     "Killed",
+		LaunchTime: launchTime,
+		FinishTime: time.Now(),
+	}
+	_, err := dbEngine.Insert(&modelLog)
 	if err != nil {
 		return false, err
 	}
