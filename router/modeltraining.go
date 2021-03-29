@@ -3,70 +3,120 @@ package router
 import (
 	"context"
 	"github.com/kataras/iris/v12"
+	"prometheus/api/database"
 	. "prometheus/api/modeltraining"
-	"prometheus/model"
+	. "prometheus/model"
 	"time"
 )
 
 func ModelTrainingInit(modelTrainingRouter iris.Party) {
-	// launch model with exec
-	// need to be abandoned
-	modelTrainingRouter.Post("/launchtest", func(ctx iris.Context) {
-		var modelJson struct {
-			Modelname string `json:"modelname"`
-		}
-		if err := ctx.ReadJSON(&modelJson); err != nil {
-			panic(err)
-		}
-
-		go LaunchModel(modelJson.Modelname)
-		_, err := ctx.JSON(iris.Map{
-			"status":  0,
-			"message": "Model " + modelJson.Modelname + " is launched.",
-		})
-		if err != nil {
-			panic(err)
-		}
-	})
-
-	modelTrainingRouter.Post("/launchcanceltest", func(ctx iris.Context) {
-		modelctx, cancel := context.WithCancel(context.Background())
-
-		// append running model list
-		RunningModelList = append(RunningModelList, model.RunningModel{
-			Id:         ModelID,
-			ScriptName: "test script",
-			Ctx:        &modelctx,
-			CancelFunc: &cancel,
-		})
-
-		go LaunchTest(modelctx)
-
-		time.Sleep(5 * time.Second)
-
-		cancel()
-	})
-
+	// get running model information
 	modelTrainingRouter.Get("/getModelTrainingInfo", func(ctx iris.Context) {
-		_, err := ctx.JSON(iris.Map{
-			"info": "this is a example api",
+		// get running model information
+		modelList := make([]RunningModelInfo, 0)
+		tmpFinishTime, _ := time.Parse(TimeFormat, "0000-00-00 00:00:00")
+		for _, runningModel := range RunningModelList {
+			modelList = append(modelList, RunningModelInfo{
+				Id:         runningModel.Id,
+				ScriptName: runningModel.ScriptName,
+				Status:     "Running",
+				LaunchTime: runningModel.LaunchTime,
+				FinishTime: tmpFinishTime,
+			})
+		}
+		// get finished model information
+		finishedModel, err := database.QueryFinishedModelLog()
+		if err != nil {
+			panic(err)
+		}
+		modelList = append(modelList, finishedModel...)
+		// return response
+		ctx.StatusCode(200)
+		_, err = ctx.JSON(iris.Map{
+			"status": "success",
+			"length": len(modelList),
+			"data":   modelList,
 		})
 		if err != nil {
 			panic(err)
 		}
 	})
 
-	modelTrainingRouter.Post("/killModel", func(ctx iris.Context) {
-		var modelJson struct {
-			Modelname string `json:"modelname"`
-		}
-		if err := ctx.ReadJSON(&modelJson); err != nil {
+	// launch model
+	modelTrainingRouter.Post("/launchModel", func(ctx iris.Context) {
+		// get model info
+		modelInfo := ModelInfo{}
+		if err := ctx.ReadJSON(&modelInfo); err != nil {
 			panic(err)
 		}
-		// todo: kill model operation here
+
+		// create model context
+		modelctx, cancel := context.WithCancel(context.Background())
+		// create model id
+		ModelID++
+
+		// running model record
+		RunningModelList = append(RunningModelList, RunningModel{
+			Id:         ModelID,
+			ScriptName: modelInfo.ScriptName,
+			Ctx:        modelctx,
+			CancelFunc: cancel,
+		})
+
+		// launch model
+		go LaunchModel(modelInfo.ScriptName, ModelID, modelctx)
+
+		// return response
+		ctx.StatusCode(200)
+		_, err := ctx.JSON(iris.Map{
+			"status":     "success",
+			"message":    "Model " + modelInfo.ScriptName + " has been launched.",
+			"launchTime": time.Now().Format(TimeFormat),
+		})
+		if err != nil {
+			panic(err)
+		}
+	})
+
+	// kill running model process
+	modelTrainingRouter.Post("/killModel", func(ctx iris.Context) {
+		// get model info
+		modelInfo := ModelInfo{}
+		if err := ctx.ReadJSON(&modelInfo); err != nil {
+			panic(err)
+		}
+
+		// kill model
+		findModelFlag := false
+		for _, runningModel := range RunningModelList {
+			if runningModel.Id == modelInfo.Id {
+				go runningModel.CancelFunc()
+
+				// add kill model log to database
+				_, err := database.AddKilledModelLog(runningModel.Id, runningModel.ScriptName, runningModel.LaunchTime)
+				if err != nil {
+					panic(err)
+				}
+
+				findModelFlag = true
+				break
+			}
+		}
+		if !findModelFlag {
+			ctx.StatusCode(400)
+			_, err := ctx.JSON(iris.Map{
+				"status":  1,
+				"message": "Model " + modelInfo.ScriptName + " hasn't been launched.",
+			})
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		// return response
 		_, err := ctx.JSON(iris.Map{
 			"status":  0,
-			"message": "Model " + modelJson.Modelname + " has been killed.",
+			"message": "Model " + modelInfo.ScriptName + " has been killed.",
 		})
 		if err != nil {
 			panic(err)
