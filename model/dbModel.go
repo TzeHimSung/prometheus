@@ -21,5 +21,7 @@ type ModelStoreInfo struct {
 type RunningModelInfo struct {
 	Id         int       `json:"id" xorm:"int"`
 	ScriptName string    `json:"scriptName" xorm:"varchar(255)"`
+	Status     string    `json:"status" xorm:varchar(255)`
 	LaunchTime time.Time `json:"launchTime" xorm:"created"`
+	FinishTime time.Time `json:"finishTime" xorm:"created"`
 }

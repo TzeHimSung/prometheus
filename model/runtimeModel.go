@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-const (
-	TimeFormat = "2006-01-02 15:04:05"
-)
-
 type ProjectInfo struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
