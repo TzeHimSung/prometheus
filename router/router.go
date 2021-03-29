@@ -3,12 +3,6 @@ package router
 import (
 	"github.com/iris-contrib/middleware/cors"
 	"github.com/kataras/iris/v12"
-	"prometheus/model"
-)
-
-var (
-	ModelID          = 0
-	RunningModelList = make([]model.RunningModel, 0)
 )
 
 func Hub(app *iris.Application) {
