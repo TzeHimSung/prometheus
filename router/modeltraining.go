@@ -13,10 +13,10 @@ func ModelTrainingInit(modelTrainingRouter iris.Party) {
 	// get running model information
 	modelTrainingRouter.Get("/getModelTrainingInfo", func(ctx iris.Context) {
 		// get running model information
-		modelList := make([]RunningModelInfo, 0)
+		runningModelList, finishedModelList := make([]RunningModelInfo, 0), make([]RunningModelInfo, 0)
 		tmpFinishTime, _ := time.Parse(TimeFormat, "0000-00-00 00:00:00")
 		for _, runningModel := range RunningModelList {
-			modelList = append(modelList, RunningModelInfo{
+			runningModelList = append(runningModelList, RunningModelInfo{
 				Id:         runningModel.Id,
 				ScriptName: runningModel.ScriptName,
 				Status:     "Running",
@@ -29,13 +29,14 @@ func ModelTrainingInit(modelTrainingRouter iris.Party) {
 		if err != nil {
 			panic(err)
 		}
-		modelList = append(modelList, finishedModel...)
+		finishedModelList = append(finishedModelList, finishedModel...)
 		// return response
 		ctx.StatusCode(200)
 		_, err = ctx.JSON(iris.Map{
-			"status": "success",
-			"length": len(modelList),
-			"data":   modelList,
+			"status":            "success",
+			"length":            len(runningModelList) + len(finishedModelList),
+			"runningModelList":  runningModelList,
+			"finishedModelList": finishedModelList,
 		})
 		if err != nil {
 			panic(err)
