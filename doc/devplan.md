@@ -25,5 +25,6 @@
   - multi-routine control
 
 ## April
-- achieve model training page
-- give out a plan of data visual
+- ~~achieve model training page~~
+- test NLP repos  
+- give out a plan of data visual(discussion needed)
