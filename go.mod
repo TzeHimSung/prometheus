@@ -6,6 +6,7 @@ require (
 	github.com/CloudyKit/jet/v6 v6.1.0 // indirect
 	github.com/Shopify/goreferrer v0.0.0-20210305184658-1a4fe54f556d // indirect
 	github.com/akavel/rsrc v0.10.1 // indirect
+	github.com/cuonglm/gocmt v0.0.0-20210127031015-1529b91910d1 // indirect
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/iris-contrib/middleware v12.1.2+incompatible // indirect
 	github.com/iris-contrib/middleware/cors v0.0.0-20210110101738-6d0a4d799b5d // indirect
