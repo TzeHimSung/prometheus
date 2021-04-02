@@ -1,3 +1,6 @@
+/**
+ * @Description: APIs related to modelstore page
+ */
 package modelstore
 
 import (
@@ -6,6 +9,10 @@ import (
 	"strings"
 )
 
+/**
+ * @Description: get project information, this API may be need to be removed
+ * @return []ProjectInfo: project information slice
+ */
 func GetModelStoreProjectList() []ProjectInfo {
 	return []ProjectInfo{
 		{
@@ -23,6 +30,11 @@ func GetModelStoreProjectList() []ProjectInfo {
 	}
 }
 
+/**
+ * @Description: get model store file information
+ * @return []ModelStoreInfo: model store file slice
+ * @return []FileSuffixInfo: model store file suffix slice
+ */
 func GetModelStoreInfo() ([]ModelStoreInfo, []FileSuffixInfo) {
 	// load file list data from database
 	fileList, err := database.QueryUploadModelLog()
@@ -51,5 +63,6 @@ func GetModelStoreInfo() ([]ModelStoreInfo, []FileSuffixInfo) {
 		}
 	}
 
+	// return file list and file suffix list
 	return fileList, resultFileSuffixList
 }

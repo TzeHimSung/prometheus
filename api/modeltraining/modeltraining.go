@@ -1,3 +1,6 @@
+/**
+ * @Description: APIs related to modeltraining page
+ */
 package modeltraining
 
 import (
@@ -12,14 +15,24 @@ import (
 )
 
 const (
-	//DataRootPath     = "./uploads/data/"
-	OutputRootPath   = "./runmodel/output/"
+	// data file root path, not needed temporarily
+	//DataRootPath = "./uploads/data/"
+	// model file output root path
+	OutputRootPath = "./runmodel/output/"
+	// model file output path time format
 	OutputTimeFormat = "2006-01-02-15-04-05"
 )
 
+/**
+ * @Description: launch specific model
+ * @param filename: model file name
+ * @param modelID: model id
+ * @param ctx: context
+ */
 func LaunchModel(filename string, modelID int, ctx context.Context) {
 	for {
 		select {
+		// return goroutine when received context done single
 		case <-ctx.Done():
 			golog.Warn("Model " + filename + "is canceled.")
 			return
@@ -74,6 +87,7 @@ func LaunchModel(filename string, modelID int, ctx context.Context) {
 			}
 			RunningModelList = append(RunningModelList[:modelIdx], RunningModelList[modelIdx+1:]...)
 
+			// initiative return, or it will run continuously
 			return
 		}
 	}

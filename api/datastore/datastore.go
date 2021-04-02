@@ -1,3 +1,6 @@
+/**
+ * @Description: APIs related to datastore page
+ */
 package datastore
 
 import (
@@ -6,6 +9,10 @@ import (
 	"strings"
 )
 
+/**
+ * @Description: get project information, this API may be need to be removed
+ * @return []ProjectInfo: project information slice
+ */
 func GetDataStoreProjectList() []ProjectInfo {
 	return []ProjectInfo{
 		{
@@ -23,6 +30,11 @@ func GetDataStoreProjectList() []ProjectInfo {
 	}
 }
 
+/**
+ * @Description: get data store file information
+ * @return []DataStoreInfo: data store file slice
+ * @return []FileSuffixInfo: data store file suffix slice
+ */
 func GetDataStoreInfo() ([]DataStoreInfo, []FileSuffixInfo) {
 	// load file list data from database
 	fileList, err := database.QueryUploadDataLog()
@@ -51,5 +63,6 @@ func GetDataStoreInfo() ([]DataStoreInfo, []FileSuffixInfo) {
 		}
 	}
 
+	// return file list and file suffix list
 	return fileList, resultFileSuffixList
 }
