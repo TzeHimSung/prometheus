@@ -1,3 +1,6 @@
+/**
+ * @Description: APIs related to database
+ */
 package database
 
 import (
@@ -14,17 +17,28 @@ import (
 )
 
 const (
+	// database configuration path
 	DBConfigPath = "./config.json"
 )
 
-var dbEngine *xorm.Engine
+var (
+	// database engine
+	dbEngine *xorm.Engine
+)
 
+/**
+ * @Description: read database configuration at project root path
+ * @return result: a string contains database configuration
+ */
 func readDBConfig() (result string) {
+	// load file
 	file, err := os.Open(DBConfigPath)
-	defer file.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer file.Close()
+
+	// read file
 	buf := bufio.NewReader(file)
 	for {
 		s, err := buf.ReadString('\n')
@@ -39,21 +53,30 @@ func readDBConfig() (result string) {
 			}
 		}
 	}
+
+	// return database configuration
 	return result
 }
 
+/**
+ * @Description: initial database
+ * @return bool: result of database initial process
+ * @return error: error when initial database failed
+ */
 func InitDatabase() (bool, error) {
 	golog.Info("Start database initialization progress...")
+
 	// read database config (config.json at project root path)
 	var dbConfigStr struct {
-		Username string
-		Password string
-		Network  string
-		Server   string
-		Port     int
-		Database string
+		Username string // db account username
+		Password string // db account password
+		Network  string // connection type
+		Server   string // server location
+		Port     int    // port
+		Database string // db name
 	}
 	dbConfig := readDBConfig()
+	// load database config as JSON
 	err := json.Unmarshal([]byte(dbConfig), &dbConfigStr)
 	if err != nil {
 		return false, err
@@ -64,7 +87,7 @@ func InitDatabase() (bool, error) {
 	dsn := fmt.Sprintf("%s:%s@%s(%s:%d)/%s", dbConfigStr.Username, dbConfigStr.Password, dbConfigStr.Network,
 		dbConfigStr.Server, dbConfigStr.Port, dbConfigStr.Database)
 
-	// get database engine
+	// generate database engine
 	dbEngine, err = xorm.NewEngine("mysql", dsn)
 	if err != nil {
 		return false, err
@@ -78,17 +101,9 @@ func InitDatabase() (bool, error) {
 	dbEngine.SetMaxIdleConns(16)                                // maximum of idle connections
 	dbEngine.TZLocation, _ = time.LoadLocation("Asia/Shanghai") // set time zone
 
-	// test create table
+	// sync table structure
 	golog.Info("Start syncing database tables...")
-	err = dbEngine.Sync2(new(model.DataStoreInfo))
-	if err != nil {
-		return false, err
-	}
-	err = dbEngine.Sync2(new(model.ModelStoreInfo))
-	if err != nil {
-		return false, err
-	}
-	err = dbEngine.Sync2(new(model.RunningModelInfo))
+	_, err = SyncTableStructure(dbEngine)
 	if err != nil {
 		return false, err
 	}
@@ -97,6 +112,11 @@ func InitDatabase() (bool, error) {
 	return true, nil
 }
 
+/**
+ * @Description: query upload data log from database
+ * @return []model.DataStoreInfo: upload data log slice
+ * @return error: error
+ */
 func QueryUploadDataLog() ([]model.DataStoreInfo, error) {
 	// get all data upload info from database
 	dataLog := make([]model.DataStoreInfo, 0)
@@ -107,6 +127,12 @@ func QueryUploadDataLog() ([]model.DataStoreInfo, error) {
 	return dataLog, nil
 }
 
+/**
+ * @Description: add upload data log to database
+ * @param filename: data file name
+ * @return bool: result of adding process
+ * @return error: error when adding process failed
+ */
 func AddUploadDataLog(filename string) (bool, error) {
 	// add data upload info to database
 	newFile := model.DataStoreInfo{
@@ -121,6 +147,12 @@ func AddUploadDataLog(filename string) (bool, error) {
 	return true, nil
 }
 
+/**
+ * @Description: delete data log from database
+ * @param filename: data file name
+ * @return bool: result of delete process
+ * @return error: error when delete process failed
+ */
 func DeleteUploadDataLog(filename string) (bool, error) {
 	// delete data upload info from database
 	dataFile := model.DataStoreInfo{
@@ -133,6 +165,11 @@ func DeleteUploadDataLog(filename string) (bool, error) {
 	return true, nil
 }
 
+/**
+ * @Description: query upload model log from database
+ * @return []model.ModelStoreInfo: upload model log slice
+ * @return error: error
+ */
 func QueryUploadModelLog() ([]model.ModelStoreInfo, error) {
 	// get all model upload info from database
 	modelLog := make([]model.ModelStoreInfo, 0)
@@ -143,6 +180,12 @@ func QueryUploadModelLog() ([]model.ModelStoreInfo, error) {
 	return modelLog, nil
 }
 
+/**
+ * @Description: add upload model log to database
+ * @param filename: model file name
+ * @return bool: result of adding process
+ * @return error: error when adding process failed
+ */
 func AddUploadModelLog(filename string) (bool, error) {
 	// add model upload info to database
 	newFile := model.ModelStoreInfo{
@@ -157,6 +200,12 @@ func AddUploadModelLog(filename string) (bool, error) {
 	return true, nil
 }
 
+/**
+ * @Description: delete model log from database
+ * @param filename: model file name
+ * @return bool: result of delete model log process
+ * @return error: error when delete process failed
+ */
 func DeleteUploadModelLog(filename string) (bool, error) {
 	// delete model upload info from database
 	dataFile := model.ModelStoreInfo{
@@ -169,6 +218,11 @@ func DeleteUploadModelLog(filename string) (bool, error) {
 	return true, nil
 }
 
+/**
+ * @Description: query finished model info from database
+ * @return []model.RunningModelInfo: finished model log slice
+ * @return error: error
+ */
 func QueryFinishedModelLog() ([]model.RunningModelInfo, error) {
 	// get all finished model info from database
 	modelLog := make([]model.RunningModelInfo, 0)
@@ -179,6 +233,14 @@ func QueryFinishedModelLog() ([]model.RunningModelInfo, error) {
 	return modelLog, nil
 }
 
+/**
+ * @Description: add finished model log to database
+ * @param modelID: model id
+ * @param modelname: model name
+ * @param launchTime: model launch time
+ * @return bool: result of adding process
+ * @return error: error when adding process failed
+ */
 func AddFinishedModelLog(modelID int, modelname string, launchTime time.Time) (bool, error) {
 	// add finished model log to database
 	modelLog := model.RunningModelInfo{
@@ -195,6 +257,14 @@ func AddFinishedModelLog(modelID int, modelname string, launchTime time.Time) (b
 	return true, nil
 }
 
+/**
+ * @Description: add kill model log to database
+ * @param modelID: model id
+ * @param modelname: model name
+ * @param launchTime: model launch time
+ * @return bool: result of adding process
+ * @return error: error when adding process failed
+ */
 func AddKilledModelLog(modelID int, modelname string, launchTime time.Time) (bool, error) {
 	// add killed model log to database
 	modelLog := model.RunningModelInfo{
