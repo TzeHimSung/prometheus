@@ -220,12 +220,12 @@ func DeleteUploadModelLog(filename string) (bool, error) {
 
 /**
  * @Description: query finished model info from database
- * @return []model.RunningModelInfo: finished model log slice
+ * @return []model.FinishedModelInfo: finished model log slice
  * @return error: error
  */
-func QueryFinishedModelLog() ([]model.RunningModelInfo, error) {
+func QueryFinishedModelLog() ([]model.FinishedModelInfo, error) {
 	// get all finished model info from database
-	modelLog := make([]model.RunningModelInfo, 0)
+	modelLog := make([]model.FinishedModelInfo, 0)
 	err := dbEngine.Find(&modelLog)
 	if err != nil {
 		return nil, err
@@ -243,7 +243,7 @@ func QueryFinishedModelLog() ([]model.RunningModelInfo, error) {
  */
 func AddFinishedModelLog(modelID int, modelname string, launchTime time.Time) (bool, error) {
 	// add finished model log to database
-	modelLog := model.RunningModelInfo{
+	modelLog := model.FinishedModelInfo{
 		Id:         modelID,
 		ScriptName: modelname,
 		Status:     "Finished",
@@ -267,7 +267,7 @@ func AddFinishedModelLog(modelID int, modelname string, launchTime time.Time) (b
  */
 func AddKilledModelLog(modelID int, modelname string, launchTime time.Time) (bool, error) {
 	// add killed model log to database
-	modelLog := model.RunningModelInfo{
+	modelLog := model.FinishedModelInfo{
 		Id:         modelID,
 		ScriptName: modelname,
 		Status:     "Killed",

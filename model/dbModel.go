@@ -1,3 +1,6 @@
+/**
+ * @Description: data structure of database models
+ */
 package model
 
 import (
@@ -5,23 +8,23 @@ import (
 )
 
 type DataStoreInfo struct {
-	FileName   string    `json:"fileName" xorm:"varchar(255)"`
-	Source     string    `json:"source" xorm:"varchar(255)"`
-	Status     string    `json:"status" xorm:"varchar(255)"`
-	CreateTime time.Time `json:"createTime" xorm:"created"`
+	FileName   string    `json:"fileName" xorm:"varchar(255)"` // file name
+	Source     string    `json:"source" xorm:"varchar(255)"`   // upload source
+	Status     string    `json:"status" xorm:"varchar(255)"`   // file status
+	CreateTime time.Time `json:"createTime" xorm:"created"`    // file create time (or upload time)
 }
 
 type ModelStoreInfo struct {
-	FileName   string    `json:"fileName" xorm:"varchar(255)"`
-	Source     string    `json:"source" xorm:"varchar(255)"`
-	Status     string    `json:"status" xorm:"varchar(255)"`
-	CreateTime time.Time `json:"createTime" xorm:"created"`
+	FileName   string    `json:"fileName" xorm:"varchar(255)"` // file name
+	Source     string    `json:"source" xorm:"varchar(255)"`   // upload source
+	Status     string    `json:"status" xorm:"varchar(255)"`   // file status
+	CreateTime time.Time `json:"createTime" xorm:"created"`    // file create time (or upload time)
 }
 
-type RunningModelInfo struct {
-	Id         int       `json:"id" xorm:"int"`
-	ScriptName string    `json:"scriptName" xorm:"varchar(255)"`
-	Status     string    `json:"status" xorm:varchar(255)`
-	LaunchTime time.Time `json:"launchTime" xorm:"created"`
-	FinishTime time.Time `json:"finishTime" xorm:"created"`
+type FinishedModelInfo struct {
+	Id         int       `json:"id" xorm:"int"`                  // model id
+	ScriptName string    `json:"scriptName" xorm:"varchar(255)"` // model name
+	Status     string    `json:"status" xorm:varchar(255)`       // status
+	LaunchTime time.Time `json:"launchTime" xorm:"created"`      // model launch time
+	FinishTime time.Time `json:"finishTime" xorm:"created"`      // model finish time
 }
