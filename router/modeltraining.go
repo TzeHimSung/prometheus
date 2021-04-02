@@ -62,6 +62,7 @@ func ModelTrainingInit(modelTrainingRouter iris.Party) {
 			ScriptName: modelInfo.ScriptName,
 			Ctx:        modelctx,
 			CancelFunc: cancel,
+			LaunchTime: time.Now(),
 		})
 
 		// launch model

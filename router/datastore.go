@@ -6,6 +6,8 @@ import (
 	"os"
 	"prometheus/api/database"
 	. "prometheus/api/datastore"
+	"prometheus/model"
+	"time"
 )
 
 func DataStoreInit(dataStoreRouter iris.Party) {
@@ -41,9 +43,10 @@ func DataStoreInit(dataStoreRouter iris.Party) {
 
 		ctx.StatusCode(200)
 		_, err = ctx.JSON(iris.Map{
-			"id":       0,
-			"number":   len(files),
-			"filelist": fileList,
+			"id":         0,
+			"number":     len(files),
+			"filelist":   fileList,
+			"createTime": time.Now().Format(model.TimeFormat),
 		})
 		if err != nil {
 			panic(err)
