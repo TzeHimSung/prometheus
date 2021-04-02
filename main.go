@@ -1,4 +1,8 @@
 //go:generate goversioninfo -icon=resource/icon.ico -manifest=resource/goversioninfo.exe.manifest
+
+/**
+ * @Description: main program of prometheus
+ */
 package main
 
 import (
@@ -10,6 +14,7 @@ import (
 )
 
 const (
+	// app listen port
 	ListenPort = 8000
 )
 
