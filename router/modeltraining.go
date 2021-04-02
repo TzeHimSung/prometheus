@@ -1,3 +1,6 @@
+/**
+ * @Description: modeltraining page route configuration
+ */
 package router
 
 import (
@@ -9,6 +12,10 @@ import (
 	"time"
 )
 
+/**
+ * @Description: modeltraining page route initialization
+ * @param modelTrainingRouter: modeltraining page router
+ */
 func ModelTrainingInit(modelTrainingRouter iris.Party) {
 	// get running model information
 	modelTrainingRouter.Get("/getModelTrainingInfo", func(ctx iris.Context) {
@@ -106,6 +113,7 @@ func ModelTrainingInit(modelTrainingRouter iris.Party) {
 				break
 			}
 		}
+		// if not find model
 		if !findModelFlag {
 			ctx.StatusCode(400)
 			_, err := ctx.JSON(iris.Map{

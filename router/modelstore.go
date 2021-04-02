@@ -1,3 +1,6 @@
+/**
+ * @Description: modelstore page router configuration
+ */
 package router
 
 import (
@@ -10,7 +13,12 @@ import (
 	"time"
 )
 
+/**
+ * @Description: modelstore page router initialization
+ * @param modelStoreRouter: modelstore page router
+ */
 func ModelStoreInit(modelStoreRouter iris.Party) {
+	// get modelstore information
 	modelStoreRouter.Get("/getModelStoreInfo", func(ctx iris.Context) {
 		fileList, fileSuffixList := GetModelStoreInfo()
 		projectList := GetModelStoreProjectList()
@@ -24,6 +32,8 @@ func ModelStoreInit(modelStoreRouter iris.Party) {
 		}
 	})
 
+	// upload model file
+	// todo: rewrite this api, move part function to API package
 	modelStoreRouter.Post("/uploadModel", func(ctx iris.Context) {
 		files, _, err := ctx.UploadFormFiles("./uploads/model")
 		if err != nil {
@@ -53,6 +63,7 @@ func ModelStoreInit(modelStoreRouter iris.Party) {
 		}
 	})
 
+	// download model file
 	modelStoreRouter.Post("/downloadModel", func(ctx iris.Context) {
 		var fileJson struct {
 			Filename string `json:"filename"`
@@ -66,6 +77,8 @@ func ModelStoreInit(modelStoreRouter iris.Party) {
 		}
 	})
 
+	// delete model file
+	// todo: rewrite this api, move part function to API package
 	modelStoreRouter.Post("/deleteModel", func(ctx iris.Context) {
 		var fileJson struct {
 			Filename string `json:"filename"`

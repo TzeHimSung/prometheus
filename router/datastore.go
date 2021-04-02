@@ -1,3 +1,6 @@
+/**
+ * @Description: datastore page route configuration
+ */
 package router
 
 import (
@@ -10,7 +13,13 @@ import (
 	"time"
 )
 
+/**
+ * @Description: datastore page route initialization
+ * @param dataStoreRouter: datastore page router
+ */
 func DataStoreInit(dataStoreRouter iris.Party) {
+	// get datastore information
+	// attention: project list may be removed
 	dataStoreRouter.Get("/getDataStoreInfo", func(ctx iris.Context) {
 		fileList, fileSuffixList := GetDataStoreInfo()
 		projectList := GetDataStoreProjectList()
@@ -24,6 +33,8 @@ func DataStoreInit(dataStoreRouter iris.Party) {
 		}
 	})
 
+	// upload data file
+	// todo: rewrite this api, move part function to API package
 	dataStoreRouter.Post("/uploadData", func(ctx iris.Context) {
 		files, _, err := ctx.UploadFormFiles("./uploads/data")
 		if err != nil {
@@ -53,6 +64,7 @@ func DataStoreInit(dataStoreRouter iris.Party) {
 		}
 	})
 
+	// download data file
 	dataStoreRouter.Post("/downloadData", func(ctx iris.Context) {
 		var fileJson struct {
 			Filename string `json:"filename"`
@@ -66,6 +78,8 @@ func DataStoreInit(dataStoreRouter iris.Party) {
 		}
 	})
 
+	// delete data file
+	// todo: rewrite this api, move part function to API package
 	dataStoreRouter.Post("/deleteData", func(ctx iris.Context) {
 		var fileJson struct {
 			Filename string `json:"filename"`
