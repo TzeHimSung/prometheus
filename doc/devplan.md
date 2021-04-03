@@ -26,5 +26,6 @@
 
 ## April
 - ~~achieve model training page~~
-- test NLP repos  
+- fix frontend bugs
+- test NLP repos
 - give out a plan of data visual(discussion needed)
