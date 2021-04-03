@@ -70,9 +70,9 @@ func GetDataStoreInfo() ([]DataStoreInfo, []FileSuffixInfo) {
 }
 
 /**
- * @Description: save upload data
+ * @Description: save upload data file
  * @param ctx: iris context
- * @return string: filename
+ * @return string: file name
  * @return error: error
  */
 func UploadData(ctx iris.Context) (string, error) {
