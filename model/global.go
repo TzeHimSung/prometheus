@@ -10,6 +10,8 @@ const (
 	DataPath = "./uploads/data"
 	// model file path
 	ModelPath = "./uploads/model"
+	// model output path
+	ModelOutputPath = "./runmodel/output"
 )
 
 var (
