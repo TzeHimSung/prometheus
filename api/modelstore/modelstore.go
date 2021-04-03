@@ -4,6 +4,8 @@
 package modelstore
 
 import (
+	"github.com/kataras/iris/v12"
+	"os"
 	"prometheus/api/database"
 	. "prometheus/model"
 	"strings"
@@ -65,4 +67,45 @@ func GetModelStoreInfo() ([]ModelStoreInfo, []FileSuffixInfo) {
 
 	// return file list and file suffix list
 	return fileList, resultFileSuffixList
+}
+
+/**
+ * @Description: save upload model file
+ * @param ctx: iris context
+ * @return string: file name
+ * @return error: error
+ */
+func UploadModel(ctx iris.Context) (string, error) {
+	// save file
+	files, _, err := ctx.UploadFormFiles(ModelPath)
+	if err != nil {
+		return "", err
+	}
+
+	// add upload model log to database
+	// here must be files[0] because its multipart file upload
+	_, err = database.AddUploadModelLog(files[0].Filename)
+	if err != nil {
+		panic(err)
+	}
+	return files[0].Filename, nil
+}
+
+/**
+ * @Description: delete model file
+ * @param filename: model file name
+ * @return bool: result of deleting process
+ * @return error: error
+ */
+func DeteleModel(filename string) (bool, error) {
+	// delete model file
+	if err := os.Remove(ModelPath + "/" + filename); err != nil {
+		return false, err
+	}
+	// delete upload model log
+	_, err := database.DeleteUploadModelLog(filename)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

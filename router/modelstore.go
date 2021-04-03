@@ -6,8 +6,6 @@ package router
 import (
 	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12"
-	"os"
-	"prometheus/api/database"
 	. "prometheus/api/modelstore"
 	"prometheus/model"
 	"time"
@@ -33,29 +31,20 @@ func ModelStoreInit(modelStoreRouter iris.Party) {
 	})
 
 	// upload model file
-	// todo: rewrite this api, move part function to API package
 	modelStoreRouter.Post("/uploadModel", func(ctx iris.Context) {
-		files, _, err := ctx.UploadFormFiles("./uploads/model")
+		// save model file
+		filename, err := UploadModel(ctx)
 		if err != nil {
 			ctx.StopWithStatus(iris.StatusInternalServerError)
 			return
 		}
-		var fileList []string
-		for i := 0; i < len(files); i++ {
-			fileList = append(fileList, files[i].Filename)
-		}
 
-		// add upload model log to database
-		_, err = database.AddUploadModelLog(fileList[0])
-		if err != nil {
-			panic(err)
-		}
-
+		// return response
 		ctx.StatusCode(200)
 		_, err = ctx.JSON(iris.Map{
 			"id":         0,
-			"number":     len(files),
-			"filelist":   fileList,
+			"status":     "success",
+			"filename":   filename,
 			"createTime": time.Now().Format(model.TimeFormat),
 		})
 		if err != nil {
@@ -78,7 +67,6 @@ func ModelStoreInit(modelStoreRouter iris.Party) {
 	})
 
 	// delete model file
-	// todo: rewrite this api, move part function to API package
 	modelStoreRouter.Post("/deleteModel", func(ctx iris.Context) {
 		var fileJson struct {
 			Filename string `json:"filename"`
@@ -93,9 +81,11 @@ func ModelStoreInit(modelStoreRouter iris.Party) {
 				panic(err)
 			}
 		}
-		golog.Info(fileJson.Filename)
-		if err := os.Remove("./uploads/model/" + fileJson.Filename); err != nil {
-			_, err := ctx.JSON(iris.Map{
+		// delete model
+		golog.Info("Delete model: " + fileJson.Filename)
+		_, err := DeteleModel(fileJson.Filename)
+		if err != nil {
+			_, err = ctx.JSON(iris.Map{
 				"id":      1,
 				"status":  "error",
 				"message": err,
@@ -104,11 +94,7 @@ func ModelStoreInit(modelStoreRouter iris.Party) {
 				panic(err)
 			}
 		}
-		// delete upload model log
-		_, err := database.DeleteUploadModelLog(fileJson.Filename)
-		if err != nil {
-			panic(err)
-		}
+		// handle success
 		_, err = ctx.JSON(iris.Map{
 			"id":      0,
 			"status":  "success",
