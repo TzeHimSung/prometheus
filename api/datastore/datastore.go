@@ -4,6 +4,8 @@
 package datastore
 
 import (
+	"github.com/kataras/iris/v12"
+	"os"
 	"prometheus/api/database"
 	. "prometheus/model"
 	"strings"
@@ -65,4 +67,45 @@ func GetDataStoreInfo() ([]DataStoreInfo, []FileSuffixInfo) {
 
 	// return file list and file suffix list
 	return fileList, resultFileSuffixList
+}
+
+/**
+ * @Description: save upload data
+ * @param ctx: iris context
+ * @return string: filename
+ * @return error: error
+ */
+func UploadData(ctx iris.Context) (string, error) {
+	// save file
+	files, _, err := ctx.UploadFormFiles(DataPath)
+	if err != nil {
+		return "", err
+	}
+
+	// add upload data log to database
+	// here must be files[0] because its multipart file upload
+	_, err = database.AddUploadDataLog(files[0].Filename)
+	if err != nil {
+		panic(err)
+	}
+	return files[0].Filename, nil
+}
+
+/**
+ * @Description: delete data file
+ * @param filename: data file name
+ * @return bool: result of deleting process
+ * @return error: error
+ */
+func DeleteData(filename string) (bool, error) {
+	// delete data file
+	if err := os.Remove(DataPath + "/" + filename); err != nil {
+		return false, err
+	}
+	// delete upload data log
+	_, err := database.DeleteUploadDataLog(filename)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

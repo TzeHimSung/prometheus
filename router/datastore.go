@@ -6,8 +6,6 @@ package router
 import (
 	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12"
-	"os"
-	"prometheus/api/database"
 	. "prometheus/api/datastore"
 	"prometheus/model"
 	"time"
@@ -34,29 +32,20 @@ func DataStoreInit(dataStoreRouter iris.Party) {
 	})
 
 	// upload data file
-	// todo: rewrite this api, move part function to API package
 	dataStoreRouter.Post("/uploadData", func(ctx iris.Context) {
-		files, _, err := ctx.UploadFormFiles("./uploads/data")
+		// save data file
+		filename, err := UploadData(ctx)
 		if err != nil {
 			ctx.StopWithStatus(iris.StatusInternalServerError)
 			return
 		}
-		var fileList []string
-		for i := 0; i < len(files); i++ {
-			fileList = append(fileList, files[i].Filename)
-		}
 
-		// add upload data log to database
-		_, err = database.AddUploadDataLog(fileList[0])
-		if err != nil {
-			panic(err)
-		}
-
+		// return response
 		ctx.StatusCode(200)
 		_, err = ctx.JSON(iris.Map{
 			"id":         0,
-			"number":     len(files),
-			"filelist":   fileList,
+			"status":     "success",
+			"filename":   filename,
 			"createTime": time.Now().Format(model.TimeFormat),
 		})
 		if err != nil {
@@ -79,8 +68,8 @@ func DataStoreInit(dataStoreRouter iris.Party) {
 	})
 
 	// delete data file
-	// todo: rewrite this api, move part function to API package
 	dataStoreRouter.Post("/deleteData", func(ctx iris.Context) {
+		// get file name
 		var fileJson struct {
 			Filename string `json:"filename"`
 		}
@@ -94,8 +83,11 @@ func DataStoreInit(dataStoreRouter iris.Party) {
 				panic(err)
 			}
 		}
+		// delete data
 		golog.Info("Delete data: " + fileJson.Filename)
-		if err := os.Remove("./uploads/data/" + fileJson.Filename); err != nil {
+		_, err := DeleteData(fileJson.Filename)
+		// error in delete data
+		if err != nil {
 			_, err = ctx.JSON(iris.Map{
 				"id":      1,
 				"status":  "error",
@@ -105,11 +97,7 @@ func DataStoreInit(dataStoreRouter iris.Party) {
 				panic(err)
 			}
 		}
-		// delete upload data log
-		_, err := database.DeleteUploadDataLog(fileJson.Filename)
-		if err != nil {
-			panic(err)
-		}
+		// handle success
 		_, err = ctx.JSON(iris.Map{
 			"id":      0,
 			"status":  "success",
