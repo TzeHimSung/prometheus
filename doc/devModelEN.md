@@ -46,8 +46,8 @@ if __name__ == '__main__':
 
 Upload `sample.py` and launch it. Output file will be created at `/runmodel/output/model-{filename}-{filetype}-{time}`.
 
-For example, when launching `sample.py` at `00:00:00 2021/01/01`, output file dir will
-be `/runmodel/output/model-sample-py-2021-01-01-00-00-00` and you can see `output.txt` below this dir.
+For example, when launching `sample.py` at time `2021/01/01 12:34:56`, output file dir will
+be `/runmodel/output/model-sample-py-2021-01-01-12-34-56` and you can see `output.txt` below this dir.
 
 `output.txt` looks like this:
 
