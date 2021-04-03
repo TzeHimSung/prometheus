@@ -71,4 +71,10 @@ Open your browser and visit `http://localhost:8000/`.
 
 ## Model Development
 
-See more detail in [tutorial](https://github.com/TzeHimSung/prometheus/blob/main/doc/devModelEN.md)
+Supported language:
+
+- python
+- java (planning)
+- golang (planning)
+
+See more detail in [tutorial](https://github.com/TzeHimSung/prometheus/blob/main/doc/devModelEN.md).
