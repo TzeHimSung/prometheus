@@ -20,7 +20,7 @@ id,name,value
 9,rust,1200
 ```
 
-Upload `data.csv` file. Start coding model like following one:
+Upload `data.csv` file. Start coding model like following `sample.py` file:
 
 ```python
 #!/usr/env python
@@ -43,3 +43,33 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
+Upload `sample.py` and launch it. Output file will be created at `/runmodel/output/model-{filename}-{filetype}-{time}`.
+For example, when launching `sample.py` at `00:00:00 2021/01/01`, output file dir will
+be `/runmodel/output/model-sample-py-2021-01-01-00-00-00` and you can see `output.txt` below this dir.
+`output.txt` looks like this:
+
+```text
+0 python 341
+1 cpp 650
+2 java 810
+3 csharp 821
+4 golang 730
+5 erlang 400
+6 shell 500
+7 javascript 675
+8 typescript 990
+9 rust 1200
+```
+
+Some log will be generated along this process, which can be seen at backend project.
+
+```text
+[INFO] 2021/04/03 23:12 Launch Model file: sample.py
+[INFO] 2021/04/03 23:12 Output path check passed. Launching model...
+[INFO] 2021/04/03 23:12 Model is running...
+[INFO] 2021/04/03 23:12 Model launched. Create output file...
+[INFO] 2021/04/03 23:12 Output file is created.
+```
+
+`Model launched` means that model script runs perfectly.
