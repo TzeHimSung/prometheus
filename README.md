@@ -77,4 +77,5 @@ Supported language:
 - java (planning)
 - golang (planning)
 
-See more detail in [tutorial](https://github.com/TzeHimSung/prometheus/blob/main/doc/devModelEN.md).
+See more detail in tutorial [EN](https://github.com/TzeHimSung/prometheus/blob/main/doc/devModelEN.md)
+| [ZH](https://github.com/TzeHimSung/prometheus/blob/main/doc/devModelCH.md).
