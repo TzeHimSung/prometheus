@@ -46,8 +46,8 @@ if __name__ == '__main__':
 
 Upload `sample.py` and launch it. Output file will be created at `/runmodel/output/model-{filename}-{filetype}-{time}`.
 
-For example, when launching `sample.py` at time `2021/01/01 12:34:56`, output file dir will
-be `/runmodel/output/model-sample-py-2021-01-01-12-34-56` and you can see `output.txt` below this dir.
+For example, when launching `sample.py` at time `2021/01/02 12:34:56`, output file dir will
+be `/runmodel/output/model-sample-py-2021-01-02-12-34-56` and you can see `output.txt` below this dir.
 
 `output.txt` looks like this:
 
@@ -67,11 +67,11 @@ be `/runmodel/output/model-sample-py-2021-01-01-12-34-56` and you can see `outpu
 Some log will be generated along this process, which can be seen at backend project.
 
 ```text
-[INFO] 2021/04/03 23:12 Launch Model file: sample.py
-[INFO] 2021/04/03 23:12 Output path check passed. Launching model...
-[INFO] 2021/04/03 23:12 Model is running...
-[INFO] 2021/04/03 23:12 Model launched. Create output file...
-[INFO] 2021/04/03 23:12 Output file is created.
+[INFO] 2021/01/02 12:34 Launch Model file: sample.py
+[INFO] 2021/01/02 12:34 Output path check passed. Launching model...
+[INFO] 2021/01/02 12:34 Model is running...
+[INFO] 2021/01/02 12:34 Model launched. Create output file...
+[INFO] 2021/01/02 12:34 Output file is created.
 ```
 
 `Model launched` means that model script runs perfectly.
