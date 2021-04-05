@@ -44,6 +44,10 @@ func LaunchModel(filename string, modelID int, ctx context.Context) {
 			_, err := os.Stat(outputPath)
 			if err != nil {
 				err = os.Mkdir(outputPath, 0666)
+				if err != nil {
+					golog.Error("Can not create dir: " + outputPath + ", please check dir name.")
+					return
+				}
 			}
 			golog.Info("Output path check passed. Launching model...")
 
