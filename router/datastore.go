@@ -17,7 +17,7 @@ import (
  */
 func DataStoreInit(dataStoreRouter iris.Party) {
 	// get datastore information
-	// attention: project list may be removed
+	// todo: add project func
 	dataStoreRouter.Get("/getDataStoreInfo", func(ctx iris.Context) {
 		fileList, fileSuffixList := GetDataStoreInfo()
 		projectList := GetDataStoreProjectList()
