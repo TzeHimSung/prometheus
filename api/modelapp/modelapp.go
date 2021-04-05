@@ -9,16 +9,16 @@ import (
 )
 
 /**
- * @Description: get model result dir path
+ * @Description: get model result dir list
  * @return []string: model result dir list
  */
 func GetModelResultDir() []string {
-	filelist := make([]string, 0)
+	dirList := make([]string, 0)
 	files, _ := ioutil.ReadDir(model.ModelOutputPath)
 	for _, file := range files {
 		if file.IsDir() {
-			filelist = append(filelist, file.Name())
+			dirList = append(dirList, file.Name())
 		}
 	}
-	return filelist
+	return dirList
 }
