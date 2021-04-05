@@ -28,3 +28,8 @@ type FinishedModelInfo struct {
 	LaunchTime time.Time `json:"launchTime" xorm:"created"`      // model launch time
 	FinishTime time.Time `json:"finishTime" xorm:"created"`      // model finish time
 }
+
+type Project struct {
+	ProjectName string    `json:"projectName" xorm:"varchar(255)"` // project name
+	CreateTime  time.Time `json:"createTime" xorm:"created"`       // project create time
+}
