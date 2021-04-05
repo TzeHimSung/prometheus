@@ -24,6 +24,10 @@ func Hub(app *iris.Application) {
 	// config main router
 	mainRouter := app.Party("/", corsConfiguration).AllowMethods(iris.MethodOptions)
 
+	// project API router
+	projectAPIRouter := mainRouter.Party("/api")
+	projectAPIInit(projectAPIRouter)
+
 	// home page router init
 	homeRouter := mainRouter.Party("/")
 	HomeInit(homeRouter)
