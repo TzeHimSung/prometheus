@@ -125,13 +125,19 @@ func ModelTrainingInit(modelTrainingRouter iris.Party) {
 			}
 		}
 
+		// record model launch time
+		modelLaunchTime := RunningModelList[modelIdx].LaunchTime
+
 		// remove running model log
 		RunningModelList = append(RunningModelList[:modelIdx], RunningModelList[modelIdx+1:]...)
 
 		// return response
 		_, err := ctx.JSON(iris.Map{
-			"status":  0,
-			"message": "Model " + modelInfo.ScriptName + " has been killed.",
+			"status":          0,
+			"message":         "Model " + modelInfo.ScriptName + " has been killed.",
+			"modelName":       modelInfo.ScriptName,
+			"modelStatus":     "Killed",
+			"modelLaunchTime": modelLaunchTime.Format(TimeFormat),
 		})
 		if err != nil {
 			panic(err)
