@@ -59,8 +59,10 @@ func DeleteProject(projectName string) (bool, error) {
 func CreateVirtualEnv(projectName string) (bool, error) {
 	// create project dir name
 	projectDirName := ProjectPath + "/" + projectName
+	// create project venv dir
+	projectVEnvDirName := projectDirName + "/venv"
 	// create virtual environment
-	cmd := exec.Command("python", "-m venv "+projectDirName)
+	cmd := exec.Command("python", "-m", "venv", projectVEnvDirName)
 	err := cmd.Run()
 	if err != nil {
 		return false, err
