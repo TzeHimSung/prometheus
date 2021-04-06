@@ -7,10 +7,25 @@ import (
 	"github.com/kataras/golog"
 	"os"
 	"os/exec"
+	"prometheus/api/database"
 	"prometheus/api/modeltraining"
 	. "prometheus/model"
 	"time"
 )
+
+/**
+ * @Description: get project information list
+ * @return []ProjectInfo
+ * @return error
+ */
+func GetProjectList() ([]Project, error) {
+	// load project information from database
+	projectList, err := database.QueryProjectLog()
+	if err != nil {
+		return nil, err
+	}
+	return projectList, nil
+}
 
 /**
  * @Description: create project dir
@@ -38,6 +53,11 @@ func CreateProjectDir(projectName string) (bool, error) {
 			return false, err
 		}
 	}
+	// create database log
+	_, err = database.AddProjectLog(projectName)
+	if err != nil {
+		return false, err
+	}
 	return true, nil
 }
 
@@ -54,6 +74,11 @@ func DeleteProject(projectName string) (bool, error) {
 	err := os.RemoveAll(projectDirName)
 	if err != nil {
 		golog.Error("Can not delete project dir:" + projectName + ", please check.")
+		return false, err
+	}
+	// delete project log from database
+	_, err = DeleteProject(projectName)
+	if err != nil {
 		return false, err
 	}
 	return true, nil

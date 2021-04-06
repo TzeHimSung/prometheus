@@ -15,9 +15,25 @@ import (
 func projectAPIInit(projectAPIRouter iris.Party) {
 	// get project information
 	projectAPIRouter.Get("/getProjectInfo", func(ctx iris.Context) {
+		// get project list
+		projectList, err := project.GetProjectList()
+		if err != nil {
+			ctx.StatusCode(500)
+			_, err := ctx.JSON(iris.Map{
+				"status":  "error",
+				"message": err,
+			})
+			if err != nil {
+				ctx.StopWithStatus(iris.StatusInternalServerError)
+				return
+			}
+		}
+
+		// return response
 		ctx.StatusCode(200)
-		_, err := ctx.JSON(iris.Map{
-			"status": 0,
+		_, err = ctx.JSON(iris.Map{
+			"status":      0,
+			"projectList": projectList,
 		})
 		if err != nil {
 			ctx.StopWithStatus(iris.StatusInternalServerError)

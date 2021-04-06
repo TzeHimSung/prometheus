@@ -113,6 +113,57 @@ func InitDatabase() (bool, error) {
 }
 
 /**
+ * @Description:query project log from database
+ * @return []model.Project: project log slice
+ * @return error: error
+ */
+func QueryProjectLog() ([]model.Project, error) {
+	// get all project info from database
+	projectList := make([]model.Project, 0)
+	err := dbEngine.Find(&projectList)
+	if err != nil {
+		return nil, err
+	}
+	return projectList, nil
+}
+
+/**
+ * @Description: add project log to database
+ * @param projectName: project name
+ * @return bool: result of adding process
+ * @return error: error
+ */
+func AddProjectLog(projectName string) (bool, error) {
+	// add project info to database
+	newProject := model.Project{
+		ProjectName: projectName,
+	}
+	_, err := dbEngine.Insert(&newProject)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+/**
+ * @Description: delete project log to database
+ * @param projectName project name
+ * @return bool: result of deleting process
+ * @return error: error
+ */
+func DeleteProjectLog(projectName string) (bool, error) {
+	// delete project info from database
+	project := model.Project{
+		ProjectName: projectName,
+	}
+	_, err := dbEngine.Delete(&project)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+/**
  * @Description: query upload data log from database
  * @return []model.DataStoreInfo: upload data log slice
  * @return error: error
