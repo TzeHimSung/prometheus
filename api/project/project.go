@@ -33,9 +33,13 @@ func GetProjectList() ([]Project, error) {
  * @return bool
  * @return error
  */
-func SelectProject(projectName string) (bool, error) {
-
-	return true, nil
+func SelectProject(projectName string) ([]FileInfo, error) {
+	// load project file information from database
+	fileList, err := database.QueryProjectFileLog(projectName)
+	if err != nil {
+		return nil, err
+	}
+	return fileList, nil
 }
 
 /**

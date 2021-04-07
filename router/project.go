@@ -41,7 +41,50 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		}
 	})
 
-	// todo: select project
+	// get project file list after user select project
+	projectAPIRouter.Post("/selectProject", func(ctx iris.Context) {
+		// get project name
+		var projectJSON struct {
+			ProjectName string `json:"projectName"`
+		}
+		// handle argument error
+		if err := ctx.ReadJSON(&projectJSON); err != nil {
+			ctx.StatusCode(400)
+			_, err := ctx.JSON(iris.Map{
+				"status":  "error",
+				"message": err,
+			})
+			if err != nil {
+				ctx.StopWithStatus(iris.StatusInternalServerError)
+				return
+			}
+		}
+
+		// get project file list
+		fileList, err := project.SelectProject(projectJSON.ProjectName)
+		if err != nil {
+			ctx.StatusCode(500)
+			_, err := ctx.JSON(iris.Map{
+				"status":  "error",
+				"message": err,
+			})
+			if err != nil {
+				ctx.StopWithStatus(iris.StatusInternalServerError)
+				return
+			}
+		}
+
+		// return response
+		ctx.StatusCode(200)
+		_, err = ctx.JSON(iris.Map{
+			"status":   0,
+			"fileList": fileList,
+		})
+		if err != nil {
+			ctx.StopWithStatus(iris.StatusInternalServerError)
+			return
+		}
+	})
 
 	// create project
 	projectAPIRouter.Post("/createProject", func(ctx iris.Context) {
