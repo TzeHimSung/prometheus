@@ -1,4 +1,4 @@
-# Milestones
+# Monthly milestones
 
 ## January
 
@@ -22,10 +22,12 @@
   - ~~xorm~~
 - research model training plan
   - ~~goroutine context demo~~
-  - multi-routine control
+  - ~~multi-routine control~~
 
 ## April
+
 - ~~achieve model training page~~
 - fix frontend bugs
-- test NLP repos
+- ~~test NLP repos~~
+- refactor code, add project management function
 - give out a plan of data visual(discussion needed)
