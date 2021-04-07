@@ -17,6 +17,8 @@ const (
 )
 
 var (
+	// current project
+	CurrProject = "Sample Project"
 	// model id counter
 	ModelID = 0
 	// running model list

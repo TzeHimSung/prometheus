@@ -41,6 +41,8 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		}
 	})
 
+	// todo: select project
+
 	// create project
 	projectAPIRouter.Post("/createProject", func(ctx iris.Context) {
 		// get project name

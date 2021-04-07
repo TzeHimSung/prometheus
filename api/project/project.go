@@ -28,6 +28,17 @@ func GetProjectList() ([]Project, error) {
 }
 
 /**
+ * @Description: select project
+ * @param projectName
+ * @return bool
+ * @return error
+ */
+func SelectProject(projectName string) (bool, error) {
+
+	return true, nil
+}
+
+/**
  * @Description: create project dir
  * @param projectName: project name
  * @return bool: sign of creating process
