@@ -164,6 +164,21 @@ func DeleteProjectLog(projectName string) (bool, error) {
 }
 
 /**
+ * @Description: query project file information from database
+ * @param projectName: project name
+ * @return []model.FileInfo: file information slice
+ * @return error: error
+ */
+func QueryProjectFileLog(projectName string) ([]model.FileInfo, error) {
+	fileList := make([]model.FileInfo, 0)
+	err := dbEngine.Find(&fileList)
+	if err != nil {
+		return nil, err
+	}
+	return fileList, nil
+}
+
+/**
  * @Description: query upload data log from database
  * @return []model.DataStoreInfo: upload data log slice
  * @return error: error
