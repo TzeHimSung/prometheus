@@ -88,7 +88,7 @@ func DeleteProject(projectName string) (bool, error) {
 		return false, err
 	}
 	// delete project log from database
-	_, err = DeleteProject(projectName)
+	_, err = database.DeleteProjectLog(projectName)
 	if err != nil {
 		return false, err
 	}
