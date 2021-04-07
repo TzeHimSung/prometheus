@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+type Project struct {
+	ProjectName string    `json:"projectName" xorm:"varchar(255)"` // project name
+	CreateTime  time.Time `json:"createTime" xorm:"created"`       // project create time
+}
+
 type DataStoreInfo struct {
 	FileName   string    `json:"fileName" xorm:"varchar(255)"` // file name
 	Source     string    `json:"source" xorm:"varchar(255)"`   // upload source
@@ -34,9 +39,4 @@ type FinishedModelInfo struct {
 	Status     string    `json:"status" xorm:varchar(255)`       // status
 	LaunchTime time.Time `json:"launchTime" xorm:"created"`      // model launch time
 	FinishTime time.Time `json:"finishTime" xorm:"created"`      // model finish time
-}
-
-type Project struct {
-	ProjectName string    `json:"projectName" xorm:"varchar(255)"` // project name
-	CreateTime  time.Time `json:"createTime" xorm:"created"`       // project create time
 }
