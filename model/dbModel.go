@@ -22,9 +22,10 @@ type ModelStoreInfo struct {
 }
 
 type FileInfo struct {
-	FileName   string    `json:"fileName" xorm:"varchar(255)"`
-	Source     string    `json:"source" xorm:"varchar(255)"`
-	CreateTime time.Time `json:"createTime" xorm:"created"`
+	ProjectName string    `json:"projectName" xorm:"varchar(255)"` // project name
+	FileName    string    `json:"fileName" xorm:"varchar(255)"`    // file name
+	Source      string    `json:"source" xorm:"varchar(255)"`      // upload source
+	CreateTime  time.Time `json:"createTime" xorm:"created"`       // file create time
 }
 
 type FinishedModelInfo struct {
