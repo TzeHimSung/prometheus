@@ -1,3 +1,4 @@
+// Package project
 /**
  * @Description: APIs related to project
  */
@@ -5,6 +6,7 @@ package project
 
 import (
 	"github.com/kataras/golog"
+	"github.com/kataras/iris/v12"
 	"os"
 	"os/exec"
 	"prometheus/api/database"
@@ -13,10 +15,11 @@ import (
 	"time"
 )
 
+// GetProjectList
 /**
  * @Description: get project information list
- * @return []ProjectInfo
- * @return error
+ * @return []ProjectInfo: project info slice
+ * @return error: error
  */
 func GetProjectList() ([]Project, error) {
 	// load project information from database
@@ -27,25 +30,24 @@ func GetProjectList() ([]Project, error) {
 	return projectList, nil
 }
 
+// GetProjectFile get project file list
 /**
- * @Description: select project
- * @param projectName
- * @return bool
- * @return error
+ * @return []FileInfo: project file list
+ * @return error: error
  */
-func SelectProject(projectName string) ([]FileInfo, error) {
-	// load project file information from database
-	fileList, err := database.QueryProjectFileLog(projectName)
+func GetProjectFile() ([]FileInfo, error) {
+	fileInfoList, err := database.QueryProjectFileLog(CurrProject)
 	if err != nil {
 		return nil, err
 	}
-	return fileList, nil
+	return fileInfoList, nil
 }
 
+// CreateProjectDir
 /**
  * @Description: create project dir
  * @param projectName: project name
- * @return bool: sign of creating process
+ * @return bool: result of creating process
  * @return error: error
  */
 func CreateProjectDir(projectName string) (bool, error) {
@@ -76,10 +78,11 @@ func CreateProjectDir(projectName string) (bool, error) {
 	return true, nil
 }
 
+// DeleteProject
 /**
  * @Description: delete project dir
  * @param projectName: project name
- * @return bool: sign of deleting process
+ * @return bool: result of deleting process
  * @return error: error
  */
 func DeleteProject(projectName string) (bool, error) {
@@ -99,10 +102,11 @@ func DeleteProject(projectName string) (bool, error) {
 	return true, nil
 }
 
+// CreateVirtualEnv
 /**
  * @Description: create virtual environment for project
  * @param projectName: project name
- * @return bool: sign of creating process
+ * @return bool: result of creating process
  * @return error: error
  */
 func CreateVirtualEnv(projectName string) (bool, error) {
@@ -126,10 +130,11 @@ func CreateVirtualEnv(projectName string) (bool, error) {
 	return true, nil
 }
 
+// InstallRequirement
 /**
  * @Description: install virtual environment required package
  * @param projectName: project name
- * @return bool: sign of installation process
+ * @return bool: result of installation process
  * @return error: error
  */
 func InstallRequirement(projectName string) (bool, error) {
@@ -141,7 +146,7 @@ func InstallRequirement(projectName string) (bool, error) {
 	// no need to check whether requirements.txt exists or not, just return error
 	// activate virtual environment
 	cmd := exec.Command(venvActiveCmd, "&&",
-		"pip", "install", "-r", "uploads/project/test/requirements.txt")
+		"pip", "install", "-r", "uploads/project/"+projectName+"/requirements.txt")
 	// start installation process
 	res, err := cmd.Output()
 	if err != nil {
@@ -162,10 +167,11 @@ func InstallRequirement(projectName string) (bool, error) {
 	return true, nil
 }
 
+// GetPipList
 /**
  * @Description: get pip list info
  * @param projectName: project name
- * @return bool: sign of query process
+ * @return bool: result of query process
  * @return error: error
  */
 func GetPipList(projectName string) (bool, error) {
@@ -190,6 +196,48 @@ func GetPipList(projectName string) (bool, error) {
 		return false, err
 	}
 	_, err = f.Write(res)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// UploadData
+/**
+ * @Description: save upload data file
+ * @param ctx: iris context
+ * @return string: file name
+ * @return error: error
+ */
+func UploadData(ctx iris.Context) (string, error) {
+	// save file to project path
+	files, _, err := ctx.UploadFormFiles(ProjectPath + "/" + CurrProject)
+	if err != nil {
+		return "", err
+	}
+
+	// add upload data log to database
+	// here must be files[0] because its multipart file upload
+	_, err = database.AddUploadDataLog(files[0].Filename)
+	if err != nil {
+		panic(err)
+	}
+	return files[0].Filename, nil
+}
+
+// DeleteData delete data file
+/**
+ * @param filename: data file name
+ * @return bool: result of deleting process
+ * @return error: error
+ */
+func DeleteData(filename string) (bool, error) {
+	// delete data file
+	if err := os.Remove(ProjectPath + "/" + CurrProject + "/" + filename); err != nil {
+		return false, err
+	}
+	// delete upload data log
+	_, err := database.DeleteUploadDataLog(filename)
 	if err != nil {
 		return false, err
 	}

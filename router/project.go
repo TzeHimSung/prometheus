@@ -4,8 +4,11 @@
 package router
 
 import (
+	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12"
 	"prometheus/api/project"
+	"prometheus/model"
+	"time"
 )
 
 /**
@@ -41,8 +44,8 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		}
 	})
 
-	// get project file list after user select project
-	projectAPIRouter.Post("/selectProject", func(ctx iris.Context) {
+	// get project file list
+	projectAPIRouter.Post("/getProjectFile", func(ctx iris.Context) {
 		// get project name
 		var projectJSON struct {
 			ProjectName string `json:"projectName"`
@@ -59,9 +62,11 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 				return
 			}
 		}
+		// update current project information
+		model.CurrProject = projectJSON.ProjectName
 
-		// get project file list
-		fileList, err := project.SelectProject(projectJSON.ProjectName)
+		// get file information list
+		fileInfoList, err := project.GetProjectFile()
 		if err != nil {
 			ctx.StatusCode(500)
 			_, err := ctx.JSON(iris.Map{
@@ -73,17 +78,12 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 				return
 			}
 		}
-
-		// return response
 		ctx.StatusCode(200)
 		_, err = ctx.JSON(iris.Map{
-			"status":   0,
-			"fileList": fileList,
+			"status":      0,
+			"projectName": model.CurrProject,
+			"fileList":    fileInfoList,
 		})
-		if err != nil {
-			ctx.StopWithStatus(iris.StatusInternalServerError)
-			return
-		}
 	})
 
 	// create project
@@ -123,7 +123,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		ctx.StatusCode(200)
 		_, err = ctx.JSON(iris.Map{
 			"status":  0,
-			"message": "create project " + projectJSON.ProjectName + " successfully",
+			"message": "Create project " + projectJSON.ProjectName + " successfully",
 		})
 		if err != nil {
 			ctx.StopWithStatus(iris.StatusInternalServerError)
@@ -168,7 +168,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		ctx.StatusCode(200)
 		_, err = ctx.JSON(iris.Map{
 			"status":  0,
-			"message": "delete project " + projectJSON.ProjectName + " successfully",
+			"message": "Delete project " + projectJSON.ProjectName + " successfully",
 		})
 		if err != nil {
 			ctx.StopWithStatus(iris.StatusInternalServerError)
@@ -213,7 +213,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		ctx.StatusCode(200)
 		_, err = ctx.JSON(iris.Map{
 			"status":  0,
-			"message": "create virtual environment for project " + projectJSON.ProjectName + " successfully",
+			"message": "Create virtual environment for project " + projectJSON.ProjectName + " successfully",
 		})
 		if err != nil {
 			ctx.StopWithStatus(iris.StatusInternalServerError)
@@ -258,7 +258,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		ctx.StatusCode(200)
 		_, err = ctx.JSON(iris.Map{
 			"status":  0,
-			"message": "install package in virtual environment for project " + projectJSON.ProjectName + " successfully",
+			"message": "Install package in virtual environment for project " + projectJSON.ProjectName + " successfully",
 		})
 		if err != nil {
 			ctx.StopWithStatus(iris.StatusInternalServerError)
@@ -303,11 +303,98 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		ctx.StatusCode(200)
 		_, err = ctx.JSON(iris.Map{
 			"status":  0,
-			"message": "generate pip list for project " + projectJSON.ProjectName + " successfully",
+			"message": "Generate pip list for project " + projectJSON.ProjectName + " successfully",
 		})
 		if err != nil {
 			ctx.StopWithStatus(iris.StatusInternalServerError)
 			return
+		}
+	})
+
+	// upload data file
+	projectAPIRouter.Post("/uploadData", func(ctx iris.Context) {
+		// get project name from cookie
+		// can not get cookie when developing with Chrome locally, use other browser instead
+		// reason: https://stackoverflow.com/questions/8105135/cannot-set-cookies-in-javascript
+		projectName := ctx.GetCookie("projectName")
+		model.CurrProject = projectName
+		// save data file
+		filename, err := project.UploadData(ctx)
+		if err != nil {
+			ctx.StopWithStatus(iris.StatusInternalServerError)
+			return
+		}
+
+		// return response
+		ctx.StatusCode(200)
+		_, err = ctx.JSON(iris.Map{
+			"id":         0,
+			"status":     "success",
+			"filename":   filename,
+			"createTime": time.Now().Format(model.TimeFormat),
+		})
+		if err != nil {
+			panic(err)
+		}
+	})
+
+	// download data file
+	projectAPIRouter.Post("/downloadData", func(ctx iris.Context) {
+		var paramJson struct {
+			Filename    string `json:"filename"`
+			ProjectName string `json:"projectName"`
+		}
+		if err := ctx.ReadJSON(&paramJson); err != nil {
+			panic(err)
+		}
+		golog.Info("Download data: " + paramJson.Filename + " in project: " + paramJson.ProjectName)
+		err := ctx.SendFile(model.ProjectPath+"/"+paramJson.ProjectName+"/"+paramJson.Filename, paramJson.Filename)
+		if err != nil {
+			panic(err)
+		}
+	})
+
+	// delete data file
+	projectAPIRouter.Post("/deleteData", func(ctx iris.Context) {
+		// get file name
+		var paramJson struct {
+			Filename    string `json:"filename"`
+			ProjectName string `json:"projectName"`
+		}
+		if err := ctx.ReadJSON(&paramJson); err != nil {
+			_, err := ctx.JSON(iris.Map{
+				"id":      1,
+				"status":  "error",
+				"message": err,
+			})
+			if err != nil {
+				panic(err)
+			}
+		}
+		// delete data
+		golog.Info("Delete data: " + paramJson.Filename + " in project: " + paramJson.ProjectName)
+		// update current project information
+		model.CurrProject = paramJson.ProjectName
+		_, err := project.DeleteData(paramJson.Filename)
+		// error in delete data
+		if err != nil {
+			_, err = ctx.JSON(iris.Map{
+				"id":      1,
+				"status":  "error",
+				"message": err,
+			})
+			if err != nil {
+				panic(err)
+			}
+		}
+		// handle success
+		_, err = ctx.JSON(iris.Map{
+			"id":      0,
+			"status":  "success",
+			"message": "",
+		})
+		if err != nil {
+			panic(err)
 		}
 	})
 }
