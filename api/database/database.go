@@ -1,6 +1,5 @@
-/**
- * @Description: APIs related to database
- */
+// Package database
+// APIs related to database
 package database
 
 import (
@@ -17,17 +16,17 @@ import (
 )
 
 const (
-	// database configuration path
+	// DBConfigPath database configuration path
 	DBConfigPath = "./config.json"
 )
 
 var (
-	// database engine
+	// dbEngine database engine
 	dbEngine *xorm.Engine
 )
 
+// readDBConfig read database configuration at project root path
 /**
- * @Description: read database configuration at project root path
  * @return result: a string contains database configuration
  */
 func readDBConfig() (result string) {
@@ -58,8 +57,8 @@ func readDBConfig() (result string) {
 	return result
 }
 
+// InitDatabase initial database
 /**
- * @Description: initial database
  * @return bool: result of database initial process
  * @return error: error when initial database failed
  */
@@ -112,8 +111,8 @@ func InitDatabase() (bool, error) {
 	return true, nil
 }
 
+// QueryProjectLog query project log from database
 /**
- * @Description:query project log from database
  * @return []model.Project: project log slice
  * @return error: error
  */
@@ -127,8 +126,8 @@ func QueryProjectLog() ([]model.Project, error) {
 	return projectList, nil
 }
 
+// AddProjectLog add project log to database
 /**
- * @Description: add project log to database
  * @param projectName: project name
  * @return bool: result of adding process
  * @return error: error
@@ -145,8 +144,8 @@ func AddProjectLog(projectName string) (bool, error) {
 	return true, nil
 }
 
+// DeleteProjectLog delete project log to database
 /**
- * @Description: delete project log to database
  * @param projectName project name
  * @return bool: result of deleting process
  * @return error: error
@@ -163,48 +162,33 @@ func DeleteProjectLog(projectName string) (bool, error) {
 	return true, nil
 }
 
+// QueryProjectFileLog query project file information from database
 /**
- * @Description: query project file information from database
  * @param projectName: project name
  * @return []model.FileInfo: file information slice
  * @return error: error
  */
 func QueryProjectFileLog(projectName string) ([]model.FileInfo, error) {
 	fileList := make([]model.FileInfo, 0)
-	err := dbEngine.Find(&fileList)
+	err := dbEngine.Where("project_name = ?", projectName).Find(&fileList)
 	if err != nil {
 		return nil, err
 	}
 	return fileList, nil
 }
 
+// AddUploadDataLog add upload data log to database
 /**
- * @Description: query upload data log from database
- * @return []model.DataStoreInfo: upload data log slice
- * @return error: error
- */
-func QueryUploadDataLog() ([]model.DataStoreInfo, error) {
-	// get all data upload info from database
-	dataLog := make([]model.DataStoreInfo, 0)
-	err := dbEngine.Find(&dataLog)
-	if err != nil {
-		return nil, err
-	}
-	return dataLog, nil
-}
-
-/**
- * @Description: add upload data log to database
  * @param filename: data file name
  * @return bool: result of adding process
  * @return error: error when adding process failed
  */
 func AddUploadDataLog(filename string) (bool, error) {
 	// add data upload info to database
-	newFile := model.DataStoreInfo{
-		FileName: filename,
-		Source:   "User upload",
-		Status:   "Uploaded",
+	newFile := model.FileInfo{
+		FileName:    filename,
+		ProjectName: model.CurrProject,
+		Source:      "User upload",
 	}
 	_, err := dbEngine.Insert(&newFile)
 	if err != nil {
@@ -213,16 +197,17 @@ func AddUploadDataLog(filename string) (bool, error) {
 	return true, nil
 }
 
+// DeleteUploadDataLog delete data log from database
 /**
- * @Description: delete data log from database
  * @param filename: data file name
  * @return bool: result of delete process
  * @return error: error when delete process failed
  */
 func DeleteUploadDataLog(filename string) (bool, error) {
 	// delete data upload info from database
-	dataFile := model.DataStoreInfo{
-		FileName: filename,
+	dataFile := model.FileInfo{
+		FileName:    filename,
+		ProjectName: model.CurrProject,
 	}
 	_, err := dbEngine.Delete(&dataFile)
 	if err != nil {
