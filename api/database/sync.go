@@ -29,5 +29,9 @@ func SyncTableStructure(dbEngine *xorm.Engine) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	err = dbEngine.Sync2(new(model.FinishedProjectInfo))
+	if err != nil {
+		return false, err
+	}
 	return true, nil
 }
