@@ -278,3 +278,62 @@ func AddKilledModelLog(modelID int, modelname string, launchTime time.Time) (boo
 	}
 	return true, nil
 }
+
+// QueryFinishedProjectLog query finished project info from database
+/**
+ * @return []model.FinishedProjectInfo: finished project log slice
+ * @return error: error
+ */
+func QueryFinishedProjectLog() ([]model.FinishedProjectInfo, error) {
+	// get all finished model info from database
+	projectLog := make([]model.FinishedProjectInfo, 0)
+	err := dbEngine.Find(&projectLog)
+	if err != nil {
+		return nil, err
+	}
+	return projectLog, nil
+}
+
+// AddFinishedProjectLog add finished model log to database
+/**
+ * @param projectID: project id
+ * @param projectName: project name
+ * @param launchTime: project launch time
+ * @return bool: result of adding process
+ * @return error: error
+ */
+func AddFinishedProjectLog(projectID int, projectName string, launchTime time.Time) (bool, error) {
+	projectLog := model.FinishedProjectInfo{
+		Id:          projectID,
+		ProjectName: projectName,
+		Status:      "Finished",
+		LaunchTime:  launchTime,
+	}
+	_, err := dbEngine.Insert(&projectLog)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// AddKilledProjectLog add killed model log to database
+/**
+ * @param projectID: project id
+ * @param projectName: project name
+ * @param launchTime: project launch time
+ * @return bool: result of adding process
+ * @return error: error
+ */
+func AddKilledProjectLog(projectID int, projectName string, launchTime time.Time) (bool, error) {
+	projectLog := model.FinishedProjectInfo{
+		Id:          projectID,
+		ProjectName: projectName,
+		Status:      "Killed",
+		LaunchTime:  launchTime,
+	}
+	_, err := dbEngine.Insert(&projectLog)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
