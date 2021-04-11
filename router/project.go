@@ -1,9 +1,11 @@
+// Package router
 /**
  * @Description: project route configuration
  */
 package router
 
 import (
+	"context"
 	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12"
 	"prometheus/api/project"
@@ -11,8 +13,8 @@ import (
 	"time"
 )
 
+// projectAPIInit project api route initialization
 /**
- * @Description: project api route initialization
  * @param projectAPIRouter: project api router
  */
 func projectAPIInit(projectAPIRouter iris.Party) {
@@ -311,8 +313,8 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		}
 	})
 
-	// upload data file
-	projectAPIRouter.Post("/uploadData", func(ctx iris.Context) {
+	// upload project file
+	projectAPIRouter.Post("/uploadFile", func(ctx iris.Context) {
 		// get project name from cookie
 		// can not get cookie when developing with Chrome locally, use other browser instead
 		// reason: https://stackoverflow.com/questions/8105135/cannot-set-cookies-in-javascript
@@ -338,8 +340,8 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		}
 	})
 
-	// download data file
-	projectAPIRouter.Post("/downloadData", func(ctx iris.Context) {
+	// download project file
+	projectAPIRouter.Post("/downloadFile", func(ctx iris.Context) {
 		var paramJson struct {
 			Filename    string `json:"filename"`
 			ProjectName string `json:"projectName"`
@@ -354,9 +356,9 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		}
 	})
 
-	// delete data file
-	projectAPIRouter.Post("/deleteData", func(ctx iris.Context) {
-		// get file name
+	// delete project file
+	projectAPIRouter.Post("/deleteFile", func(ctx iris.Context) {
+		// get file and project name
 		var paramJson struct {
 			Filename    string `json:"filename"`
 			ProjectName string `json:"projectName"`
@@ -392,6 +394,52 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 			"id":      0,
 			"status":  "success",
 			"message": "",
+		})
+		if err != nil {
+			panic(err)
+		}
+	})
+
+	// launch project
+	projectAPIRouter.Post("/launchProject", func(ctx iris.Context) {
+		// get project name
+		var paramJson struct {
+			ProjectName string `json:"projectName"`
+		}
+		if err := ctx.ReadJSON(&paramJson); err != nil {
+			_, err := ctx.JSON(iris.Map{
+				"id":      1,
+				"status":  "error",
+				"message": err,
+			})
+			if err != nil {
+				panic(err)
+			}
+		}
+		// update current project
+		model.CurrProject = paramJson.ProjectName
+		// create project goroutine context
+		projectCtx, cancel := context.WithCancel(context.Background())
+		// add project id
+		model.ProjectID++
+		// add running project record
+		model.RunningProjectList = append(model.RunningProjectList, model.RunningProject{
+			Id:          model.ProjectID,
+			ProjectName: paramJson.ProjectName,
+			Ctx:         projectCtx,
+			CancelFunc:  cancel,
+			LaunchTime:  time.Now(),
+		})
+
+		// launch model
+		go project.LaunchProject(paramJson.ProjectName, model.ProjectID, projectCtx)
+
+		// return response
+		ctx.StatusCode(200)
+		_, err := ctx.JSON(iris.Map{
+			"status":     "success",
+			"message":    "Project " + paramJson.ProjectName + " has been launched.",
+			"launchTime": time.Now().Format(model.TimeFormat),
 		})
 		if err != nil {
 			panic(err)
