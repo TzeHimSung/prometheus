@@ -20,3 +20,11 @@ type RunningModel struct {
 	CancelFunc context.CancelFunc // cancel function related to model
 	LaunchTime time.Time          // model launch time
 }
+
+type RunningProject struct {
+	Id          int                // project id
+	ProjectName string             // project name
+	Ctx         context.Context    // context related to project
+	CancelFunc  context.CancelFunc // cancel function related to project
+	LaunchTime  time.Time          // project launch time
+}
