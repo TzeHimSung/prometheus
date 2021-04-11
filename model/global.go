@@ -18,6 +18,10 @@ var (
 	CurrProject = "Sample Project"
 	// ModelID model id counter
 	ModelID = 0
+	// ProjectID project id counter
+	ProjectID = 0
 	// RunningModelList running model list
 	RunningModelList = make([]RunningModel, 0)
+	// RunningProjectList running project list
+	RunningProjectList = make([]RunningProject, 0)
 )
