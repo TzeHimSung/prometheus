@@ -218,7 +218,7 @@ func UploadData(ctx iris.Context) (string, error) {
 
 	// add upload data log to database
 	// here must be files[0] because its multipart file upload
-	_, err = database.AddUploadDataLog(files[0].Filename)
+	_, err = database.AddUploadFileLog(files[0].Filename)
 	if err != nil {
 		panic(err)
 	}
@@ -237,7 +237,7 @@ func DeleteData(filename string) (bool, error) {
 		return false, err
 	}
 	// delete upload data log
-	_, err := database.DeleteUploadDataLog(filename)
+	_, err := database.DeleteUploadFileLog(filename)
 	if err != nil {
 		return false, err
 	}
