@@ -177,13 +177,13 @@ func QueryProjectFileLog(projectName string) ([]model.FileInfo, error) {
 	return fileList, nil
 }
 
-// AddUploadDataLog add upload data log to database
+// AddUploadFileLog add upload data log to database
 /**
  * @param filename: data file name
  * @return bool: result of adding process
  * @return error: error when adding process failed
  */
-func AddUploadDataLog(filename string) (bool, error) {
+func AddUploadFileLog(filename string) (bool, error) {
 	// add data upload info to database
 	newFile := model.FileInfo{
 		FileName:    filename,
@@ -197,70 +197,17 @@ func AddUploadDataLog(filename string) (bool, error) {
 	return true, nil
 }
 
-// DeleteUploadDataLog delete data log from database
+// DeleteUploadFileLog delete data log from database
 /**
  * @param filename: data file name
  * @return bool: result of delete process
  * @return error: error when delete process failed
  */
-func DeleteUploadDataLog(filename string) (bool, error) {
+func DeleteUploadFileLog(filename string) (bool, error) {
 	// delete data upload info from database
 	dataFile := model.FileInfo{
 		FileName:    filename,
 		ProjectName: model.CurrProject,
-	}
-	_, err := dbEngine.Delete(&dataFile)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
-/**
- * @Description: query upload model log from database
- * @return []model.ModelStoreInfo: upload model log slice
- * @return error: error
- */
-func QueryUploadModelLog() ([]model.ModelStoreInfo, error) {
-	// get all model upload info from database
-	modelLog := make([]model.ModelStoreInfo, 0)
-	err := dbEngine.Find(&modelLog)
-	if err != nil {
-		return nil, err
-	}
-	return modelLog, nil
-}
-
-/**
- * @Description: add upload model log to database
- * @param filename: model file name
- * @return bool: result of adding process
- * @return error: error when adding process failed
- */
-func AddUploadModelLog(filename string) (bool, error) {
-	// add model upload info to database
-	newFile := model.ModelStoreInfo{
-		FileName: filename,
-		Source:   "User upload",
-		Status:   "Uploaded",
-	}
-	_, err := dbEngine.Insert(&newFile)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
-/**
- * @Description: delete model log from database
- * @param filename: model file name
- * @return bool: result of delete model log process
- * @return error: error when delete process failed
- */
-func DeleteUploadModelLog(filename string) (bool, error) {
-	// delete model upload info from database
-	dataFile := model.ModelStoreInfo{
-		FileName: filename,
 	}
 	_, err := dbEngine.Delete(&dataFile)
 	if err != nil {
