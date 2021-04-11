@@ -12,19 +12,19 @@ type Project struct {
 	CreateTime  time.Time `json:"createTime" xorm:"created"`       // project create time
 }
 
-type DataStoreInfo struct {
-	FileName   string    `json:"fileName" xorm:"varchar(255)"` // file name
-	Source     string    `json:"source" xorm:"varchar(255)"`   // upload source
-	Status     string    `json:"status" xorm:"varchar(255)"`   // file status
-	CreateTime time.Time `json:"createTime" xorm:"created"`    // file create time (or upload time)
-}
-
-type ModelStoreInfo struct {
-	FileName   string    `json:"fileName" xorm:"varchar(255)"` // file name
-	Source     string    `json:"source" xorm:"varchar(255)"`   // upload source
-	Status     string    `json:"status" xorm:"varchar(255)"`   // file status
-	CreateTime time.Time `json:"createTime" xorm:"created"`    // file create time (or upload time)
-}
+//type DataStoreInfo struct {
+//	FileName   string    `json:"fileName" xorm:"varchar(255)"` // file name
+//	Source     string    `json:"source" xorm:"varchar(255)"`   // upload source
+//	Status     string    `json:"status" xorm:"varchar(255)"`   // file status
+//	CreateTime time.Time `json:"createTime" xorm:"created"`    // file create time (or upload time)
+//}
+//
+//type ModelStoreInfo struct {
+//	FileName   string    `json:"fileName" xorm:"varchar(255)"` // file name
+//	Source     string    `json:"source" xorm:"varchar(255)"`   // upload source
+//	Status     string    `json:"status" xorm:"varchar(255)"`   // file status
+//	CreateTime time.Time `json:"createTime" xorm:"created"`    // file create time (or upload time)
+//}
 
 type FileInfo struct {
 	ProjectName string    `json:"projectName" xorm:"varchar(255)"` // project name
