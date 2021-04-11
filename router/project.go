@@ -319,7 +319,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		projectName := ctx.GetCookie("projectName")
 		model.CurrProject = projectName
 		// save data file
-		filename, err := project.UploadData(ctx)
+		filename, err := project.UploadFile(ctx)
 		if err != nil {
 			ctx.StopWithStatus(iris.StatusInternalServerError)
 			return
@@ -375,7 +375,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		golog.Info("Delete data: " + paramJson.Filename + " in project: " + paramJson.ProjectName)
 		// update current project information
 		model.CurrProject = paramJson.ProjectName
-		_, err := project.DeleteData(paramJson.Filename)
+		_, err := project.DeleteFile(paramJson.Filename)
 		// error in delete data
 		if err != nil {
 			_, err = ctx.JSON(iris.Map{
