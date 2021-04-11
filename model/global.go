@@ -9,10 +9,6 @@ const (
 	TimeFormat = "2006-01-02 15:04:05"
 	// ProjectPath project file path
 	ProjectPath = "./uploads/project"
-	// DataPath data file path
-	DataPath = "./uploads/data"
-	// ModelPath model file path
-	ModelPath = "./uploads/model"
 	// ModelOutputPath model output path
 	ModelOutputPath = "./runmodel/output"
 )
