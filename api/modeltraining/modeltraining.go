@@ -15,8 +15,6 @@ import (
 )
 
 const (
-	// data file root path, not needed temporarily
-	//DataRootPath = "./uploads/data/"
 	// model file output root path
 	OutputRootPath = "./runmodel/output/"
 	// model file output path time format
