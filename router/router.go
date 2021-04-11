@@ -32,10 +32,6 @@ func Hub(app *iris.Application) {
 	homeRouter := mainRouter.Party("/")
 	HomeInit(homeRouter)
 
-	// modelstore page router init
-	modelStoreRouter := mainRouter.Party("/api")
-	ModelStoreInit(modelStoreRouter)
-
 	// modeltraining page router init
 	modelTrainingRouter := mainRouter.Party("/api")
 	ModelTrainingInit(modelTrainingRouter)
