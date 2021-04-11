@@ -17,11 +17,7 @@ import (
 func SyncTableStructure(dbEngine *xorm.Engine) (bool, error) {
 	// use Sync2 but not sync
 	// reason: https://gobook.io/read/gitea.com/xorm/manual-zh-CN/chapter-03/4.sync.html
-	err := dbEngine.Sync2(new(model.DataStoreInfo))
-	if err != nil {
-		return false, err
-	}
-	err = dbEngine.Sync2(new(model.ModelStoreInfo))
+	err := dbEngine.Sync2(new(model.Project))
 	if err != nil {
 		return false, err
 	}
@@ -30,10 +26,6 @@ func SyncTableStructure(dbEngine *xorm.Engine) (bool, error) {
 		return false, err
 	}
 	err = dbEngine.Sync2(new(model.FinishedModelInfo))
-	if err != nil {
-		return false, err
-	}
-	err = dbEngine.Sync2(new(model.Project))
 	if err != nil {
 		return false, err
 	}
