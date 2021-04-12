@@ -5,6 +5,7 @@ package router
 
 import (
 	"context"
+	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12"
 	"prometheus/api/database"
 	. "prometheus/api/modeltraining"
@@ -53,13 +54,19 @@ func ModelTrainingInit(modelTrainingRouter iris.Party) {
 	// launch model
 	modelTrainingRouter.Post("/launchModel", func(ctx iris.Context) {
 		// get model info
-		modelInfo := ModelInfo{}
+		var modelInfo struct {
+			ScriptName string `json:"scriptName"`
+		}
 		if err := ctx.ReadJSON(&modelInfo); err != nil {
 			panic(err)
 		}
 
 		// create model context
-		modelctx, cancel := context.WithCancel(context.Background())
+		currCtx := context.Background()
+		modelctx, cancel := context.WithCancel(currCtx)
+		ctxPtr := &modelctx
+		golog.Info("Address 1 :")
+		golog.Info(&ctxPtr)
 		// create model id
 		ModelID++
 
@@ -67,13 +74,14 @@ func ModelTrainingInit(modelTrainingRouter iris.Party) {
 		RunningModelList = append(RunningModelList, RunningModel{
 			Id:         ModelID,
 			ScriptName: modelInfo.ScriptName,
-			Ctx:        modelctx,
 			CancelFunc: cancel,
 			LaunchTime: time.Now(),
 		})
 
 		// launch model
-		go LaunchModel(modelInfo.ScriptName, ModelID, modelctx)
+		go LaunchModel(modelctx, modelInfo.ScriptName, ModelID)
+		//time.Sleep(5 * time.Second)
+		//defer cancel()
 
 		// return response
 		ctx.StatusCode(200)
@@ -101,7 +109,7 @@ func ModelTrainingInit(modelTrainingRouter iris.Party) {
 		for idx, runningModel := range RunningModelList {
 			if runningModel.Id == modelInfo.Id {
 				modelIdx = idx
-				go runningModel.CancelFunc()
+				runningModel.CancelFunc()
 
 				// add kill model log to database
 				_, err := database.AddKilledModelLog(runningModel.Id, runningModel.ScriptName, runningModel.LaunchTime)

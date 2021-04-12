@@ -4,6 +4,8 @@
  */
 package model
 
+import "context"
+
 const (
 	// TimeFormat standard time format
 	TimeFormat = "2006-01-02 15:04:05"
@@ -24,4 +26,6 @@ var (
 	RunningModelList = make([]RunningModel, 0)
 	// RunningProjectList running project list
 	RunningProjectList = make([]RunningProject, 0)
+	// GloCtx global context
+	GloCtx context.Context
 )

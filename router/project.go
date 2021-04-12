@@ -8,8 +8,9 @@ import (
 	"context"
 	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12"
+	"prometheus/api/database"
 	"prometheus/api/project"
-	"prometheus/model"
+	. "prometheus/model"
 	"time"
 )
 
@@ -65,7 +66,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 			}
 		}
 		// update current project information
-		model.CurrProject = projectJSON.ProjectName
+		CurrProject = projectJSON.ProjectName
 
 		// get file information list
 		fileInfoList, err := project.GetProjectFile()
@@ -83,7 +84,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		ctx.StatusCode(200)
 		_, err = ctx.JSON(iris.Map{
 			"status":      0,
-			"projectName": model.CurrProject,
+			"projectName": CurrProject,
 			"fileList":    fileInfoList,
 		})
 	})
@@ -319,7 +320,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		// can not get cookie when developing with Chrome locally, use other browser instead
 		// reason: https://stackoverflow.com/questions/8105135/cannot-set-cookies-in-javascript
 		projectName := ctx.GetCookie("projectName")
-		model.CurrProject = projectName
+		CurrProject = projectName
 		// save data file
 		filename, err := project.UploadFile(ctx)
 		if err != nil {
@@ -333,7 +334,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 			"id":         0,
 			"status":     "success",
 			"filename":   filename,
-			"createTime": time.Now().Format(model.TimeFormat),
+			"createTime": time.Now().Format(TimeFormat),
 		})
 		if err != nil {
 			panic(err)
@@ -342,15 +343,15 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 
 	// download project file
 	projectAPIRouter.Post("/downloadFile", func(ctx iris.Context) {
-		var paramJson struct {
+		var paramJSON struct {
 			Filename    string `json:"filename"`
 			ProjectName string `json:"projectName"`
 		}
-		if err := ctx.ReadJSON(&paramJson); err != nil {
+		if err := ctx.ReadJSON(&paramJSON); err != nil {
 			panic(err)
 		}
-		golog.Info("Download data: " + paramJson.Filename + " in project: " + paramJson.ProjectName)
-		err := ctx.SendFile(model.ProjectPath+"/"+paramJson.ProjectName+"/"+paramJson.Filename, paramJson.Filename)
+		golog.Info("Download data: " + paramJSON.Filename + " in project: " + paramJSON.ProjectName)
+		err := ctx.SendFile(ProjectPath+"/"+paramJSON.ProjectName+"/"+paramJSON.Filename, paramJSON.Filename)
 		if err != nil {
 			panic(err)
 		}
@@ -359,11 +360,11 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 	// delete project file
 	projectAPIRouter.Post("/deleteFile", func(ctx iris.Context) {
 		// get file and project name
-		var paramJson struct {
+		var paramJSON struct {
 			Filename    string `json:"filename"`
 			ProjectName string `json:"projectName"`
 		}
-		if err := ctx.ReadJSON(&paramJson); err != nil {
+		if err := ctx.ReadJSON(&paramJSON); err != nil {
 			_, err := ctx.JSON(iris.Map{
 				"id":      1,
 				"status":  "error",
@@ -374,10 +375,10 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 			}
 		}
 		// delete data
-		golog.Info("Delete data: " + paramJson.Filename + " in project: " + paramJson.ProjectName)
+		golog.Info("Delete data: " + paramJSON.Filename + " in project: " + paramJSON.ProjectName)
 		// update current project information
-		model.CurrProject = paramJson.ProjectName
-		_, err := project.DeleteFile(paramJson.Filename)
+		CurrProject = paramJSON.ProjectName
+		_, err := project.DeleteFile(paramJSON.Filename)
 		// error in delete data
 		if err != nil {
 			_, err = ctx.JSON(iris.Map{
@@ -403,10 +404,94 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 	// launch project
 	projectAPIRouter.Post("/launchProject", func(ctx iris.Context) {
 		// get project name
-		var paramJson struct {
+		var paramJSON struct {
 			ProjectName string `json:"projectName"`
 		}
-		if err := ctx.ReadJSON(&paramJson); err != nil {
+		if err := ctx.ReadJSON(&paramJSON); err != nil {
+			_, err := ctx.JSON(iris.Map{
+				"status":  "error",
+				"message": err,
+			})
+			if err != nil {
+				panic(err)
+			}
+		}
+		// update current project
+		CurrProject = paramJSON.ProjectName
+		// create project goroutine context
+		projectCtx, cancel := context.WithCancel(GloCtx)
+		// create quit channel
+		quitChan := make(chan int)
+		// add project id
+		ProjectID++
+		// add running project record
+		RunningProjectList = append(RunningProjectList, RunningProject{
+			Id:          ProjectID,
+			ProjectName: paramJSON.ProjectName,
+			Ctx:         projectCtx,
+			CancelFunc:  cancel,
+			LaunchTime:  time.Now(),
+			QuitChan:    quitChan,
+		})
+
+		// launch model
+		go project.LaunchProject(paramJSON.ProjectName, ProjectID, quitChan)
+		//time.Sleep(5 * time.Second)
+		//close(quitChan)
+		//cancel()
+
+		// return response
+		ctx.StatusCode(200)
+		_, err := ctx.JSON(iris.Map{
+			"status":     "success",
+			"message":    "Project " + paramJSON.ProjectName + " has been launched.",
+			"launchTime": time.Now().Format(TimeFormat),
+		})
+		if err != nil {
+			panic(err)
+		}
+	})
+
+	// get running project information
+	projectAPIRouter.Get("/getRunningProjectInfo", func(ctx iris.Context) {
+		runningProjectList := make([]FinishedProjectInfo, 0)
+		// get running project information
+		tmpFinishTime, _ := time.Parse(TimeFormat, "0000-00-00 00:00:00")
+		for _, runningProject := range RunningProjectList {
+			runningProjectList = append(runningProjectList, FinishedProjectInfo{
+				Id:          runningProject.Id,
+				ProjectName: runningProject.ProjectName,
+				Status:      "Running",
+				LaunchTime:  runningProject.LaunchTime,
+				FinishTime:  tmpFinishTime,
+			})
+		}
+		// get finished project information
+		finishedProjectList, err := database.QueryFinishedProjectLog()
+		if err != nil {
+			panic(err)
+		}
+		// return response
+		ctx.StatusCode(200)
+		_, err = ctx.JSON(iris.Map{
+			"status":              "success",
+			"length":              len(runningProjectList) + len(finishedProjectList),
+			"runningProjectList":  runningProjectList,
+			"finishedProjectList": finishedProjectList,
+		})
+		if err != nil {
+			panic(err)
+		}
+	})
+
+	// kill running project
+	projectAPIRouter.Post("/killProject", func(ctx iris.Context) {
+		// get project id and name
+		var paramJSON struct {
+			Id          int    `json:"id"`
+			ProjectName string `json:"projectName"`
+		}
+		if err := ctx.ReadJSON(&paramJSON); err != nil {
 			_, err := ctx.JSON(iris.Map{
 				"id":      1,
 				"status":  "error",
@@ -416,30 +501,53 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 				panic(err)
 			}
 		}
-		// update current project
-		model.CurrProject = paramJson.ProjectName
-		// create project goroutine context
-		projectCtx, cancel := context.WithCancel(context.Background())
-		// add project id
-		model.ProjectID++
-		// add running project record
-		model.RunningProjectList = append(model.RunningProjectList, model.RunningProject{
-			Id:          model.ProjectID,
-			ProjectName: paramJson.ProjectName,
-			Ctx:         projectCtx,
-			CancelFunc:  cancel,
-			LaunchTime:  time.Now(),
-		})
 
-		// launch model
-		go project.LaunchProject(paramJson.ProjectName, model.ProjectID, projectCtx)
+		// kill model
+		var findProjectFlag, projectIdx = false, 0
+		for idx, runningProject := range RunningProjectList {
+			if runningProject.Id == paramJSON.Id {
+				// mark project id
+				projectIdx = idx
+				// cancel running project goroutine
+				//close(runningProject.QuitChan)
+				runningProject.CancelFunc()
+				// add kill project log to database
+				_, err := database.AddKilledProjectLog(runningProject.Id,
+					runningProject.ProjectName,
+					runningProject.LaunchTime)
+				if err != nil {
+					panic(err)
+				}
+				findProjectFlag = true
+				break
+			}
+		}
+
+		// if not find project
+		if !findProjectFlag {
+			ctx.StatusCode(400)
+			_, err := ctx.JSON(iris.Map{
+				"status":  "error",
+				"message": "Project " + paramJSON.ProjectName + " hasn't been launched.",
+			})
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		// mark project launch time
+		var projectLaunchTime = RunningProjectList[projectIdx].LaunchTime
+
+		// remove running project
+		RunningProjectList = append(RunningProjectList[:projectIdx], RunningProjectList[projectIdx+1:]...)
 
 		// return response
-		ctx.StatusCode(200)
 		_, err := ctx.JSON(iris.Map{
-			"status":     "success",
-			"message":    "Project " + paramJson.ProjectName + " has been launched.",
-			"launchTime": time.Now().Format(model.TimeFormat),
+			"status":            "success",
+			"message":           "Project " + paramJSON.ProjectName + " has been killed.",
+			"projectName":       paramJSON.ProjectName,
+			"projectStatus":     "Killed",
+			"projectLaunchTime": projectLaunchTime.Format(TimeFormat),
 		})
 		if err != nil {
 			panic(err)

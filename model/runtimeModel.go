@@ -16,7 +16,6 @@ type ModelInfo struct {
 type RunningModel struct {
 	Id         int                // model id
 	ScriptName string             // model name
-	Ctx        context.Context    // context related to model
 	CancelFunc context.CancelFunc // cancel function related to model
 	LaunchTime time.Time          // model launch time
 }
@@ -27,4 +26,5 @@ type RunningProject struct {
 	Ctx         context.Context    // context related to project
 	CancelFunc  context.CancelFunc // cancel function related to project
 	LaunchTime  time.Time          // project launch time
+	QuitChan    chan int
 }
