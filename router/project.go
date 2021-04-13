@@ -436,9 +436,14 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 
 		// launch model
 		go project.LaunchProject(paramJSON.ProjectName, ProjectID, quitChan)
+
+		// debug code here
+
 		//time.Sleep(5 * time.Second)
 		//close(quitChan)
 		//cancel()
+
+		// debug code end
 
 		// return response
 		ctx.StatusCode(200)
