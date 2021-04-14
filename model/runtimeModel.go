@@ -21,10 +21,9 @@ type RunningModel struct {
 }
 
 type RunningProject struct {
-	Id          int                // project id
-	ProjectName string             // project name
-	Ctx         context.Context    // context related to project
-	CancelFunc  context.CancelFunc // cancel function related to project
-	LaunchTime  time.Time          // project launch time
-	QuitChan    chan int
+	Id          int       // project id
+	Pid         int       // process id of project
+	ProjectName string    // project name
+	LaunchTime  time.Time // project launch time
+	QuitChan    chan int  // project quit channel
 }
