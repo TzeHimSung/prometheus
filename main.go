@@ -6,12 +6,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12"
 	db "prometheus/api/database"
-	"prometheus/model"
 	"prometheus/router"
 )
 
@@ -40,9 +38,6 @@ func main() {
 	// register Vue dist and static resource path
 	app.RegisterView(iris.HTML("dist", ".html"))
 	app.HandleDir("/static", "dist/static")
-
-	// generate global context
-	model.GloCtx = context.Background()
 
 	// launch server
 	if err := app.Run(iris.Addr(fmt.Sprintf(":%d", ListenPort))); err != nil {
