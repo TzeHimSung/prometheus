@@ -8,8 +8,10 @@ import (
 	"github.com/kataras/golog"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"prometheus/api/database"
 	. "prometheus/model"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -21,118 +23,35 @@ const (
 	OutputTimeFormat = "2006-01-02-15-04-05"
 )
 
+var (
+	// ProjectID project id counter
+	ProjectID = 0
+	// RunningProjectList running project list
+	RunningProjectList = make([]RunningProject, 0)
+)
+
 // LaunchProject launch specific project
 /**
  * @param projectName: project name
  * @param projectID: project id
  * @param ctx: context related to project
  */
-//func LaunchProject(projectName string, projectID int, ctx context.Context) {
-//	for {
-//		select {
-//		case <-ctx.Done():
-//			// return goroutine when received context done single
-//			golog.Warn("Project " + projectName + " is canceled.")
-//			return
-//		default:
-//			golog.Info("Launching project: " + projectName)
-//
-//			// launch project
-//			// need to check main.py exists or not
-//			launchFilePath := ProjectPath + "/" + projectName + "/main.py"
-//			//venvActiveCmd := "uploads\\project\\" + projectName + "\\venv\\Scripts\\activate.bat"
-//			//cmd := exec.Command(venvActiveCmd, "&&", "python", launchFilePath)
-//			cmd := exec.Command("python", launchFilePath)
-//			golog.Info("Project is launching...")
-//			out, err := cmd.Output()
-//			if err != nil {
-//				golog.Error("Error in project " + projectName + " launching process")
-//				panic(err)
-//			}
-//			golog.Info("Project launch process finished. Create output file...")
-//
-//			// create output dir
-//			outputPath := OutputRootPath + "proj-" +
-//				strings.Replace(projectName, ".", "-", -1) +
-//				"-" + time.Now().Format(OutputTimeFormat)
-//			_, err = os.Stat(outputPath)
-//			if err != nil {
-//				err = os.Mkdir(outputPath, 0666)
-//				if err != nil {
-//					golog.Error("Can not create dir: " + outputPath + ", please check dir name.")
-//					return
-//				}
-//			}
-//			golog.Info("Output path check passed.")
-//
-//			// create output file
-//			f, err := os.Create(outputPath + "/output.txt")
-//			defer f.Close()
-//			if err != nil {
-//				panic(err)
-//			} else {
-//				// save output to output.txt
-//				_, err := f.Write(out)
-//				if err != nil {
-//					panic(err)
-//				}
-//				golog.Info("Output file is created.")
-//			}
-//
-//			// remove running project log
-//			var projectIdx = 0
-//			for idx, runningProject := range RunningProjectList {
-//				if runningProject.Id == projectID {
-//					// add database log
-//					_, err := database.AddFinishedProjectLog(
-//						runningProject.Id,
-//						runningProject.ProjectName,
-//						runningProject.LaunchTime)
-//					if err != nil {
-//						panic(err)
-//					}
-//					projectIdx = idx
-//					break
-//				}
-//			}
-//			RunningProjectList = append(RunningProjectList[:projectIdx],
-//				RunningProjectList[projectIdx+1:]...)
-//
-//			// initiative return is needed, or it will run continuously
-//			return
-//		}
-//	}
-//}
-
-func LaunchProject(projectName string, projectID int, quitChan <-chan int) {
+func LaunchProject(projectName string, projectID int, quitChan chan int) {
 	for {
 		select {
 		case <-quitChan:
-			// return goroutine when received context done single
-			golog.Warn("Project " + projectName + " is canceled.")
+			// quit launch goroutine
+			golog.Warn("Project " + projectName + " has been canceled.")
 			return
 		default:
 			golog.Info("Launching project: " + projectName)
 
-			// launch project
-			// need to check main.py exists or not
-			launchFilePath := ProjectPath + "/" + projectName + "/main.py"
-			//venvActiveCmd := "uploads\\project\\" + projectName + "\\venv\\Scripts\\activate.bat"
-			//cmd := exec.Command(venvActiveCmd, "&&", "python", launchFilePath)
-			cmd := exec.Command("python", launchFilePath)
-			golog.Info("Project is launching...")
-			out, err := cmd.Output()
-			if err != nil {
-				golog.Error("Error in project " + projectName + " launching process")
-				panic(err)
-			}
-			golog.Info("Project launch process finished. Create output file...")
-
 			// create output dir
+			golog.Info("Create output dir...")
 			outputPath := OutputRootPath + "proj-" +
 				strings.Replace(projectName, ".", "-", -1) +
 				"-" + time.Now().Format(OutputTimeFormat)
-			_, err = os.Stat(outputPath)
+			_, err := os.Stat(outputPath)
 			if err != nil {
 				err = os.Mkdir(outputPath, 0666)
 				if err != nil {
@@ -140,20 +59,34 @@ func LaunchProject(projectName string, projectID int, quitChan <-chan int) {
 					return
 				}
 			}
-			golog.Info("Output path check passed.")
+			golog.Info("Output path check passed. Start project...")
 
-			// create output file
-			f, err := os.Create(outputPath + "/output.txt")
-			defer f.Close()
+			// launch project
+			// need to check main.py exists or not
+			launchFilePath := filepath.Join(ProjectPath, projectName, "main.py")
+			venvActiveCmd := filepath.Join(ProjectPath, projectName, "venv", "Scripts", "activate.bat")
+			cmd := exec.Command(venvActiveCmd, "&&", "python", launchFilePath)
+
+			err = cmd.Start()
 			if err != nil {
+				golog.Error("Error in project " + projectName + " launching process")
 				panic(err)
-			} else {
-				// save output to output.txt
-				_, err := f.Write(out)
-				if err != nil {
-					panic(err)
-				}
-				golog.Info("Output file is created.")
+			}
+			golog.Info("Project is running, pid: ", cmd.Process.Pid)
+
+			// add running project record
+			RunningProjectList = append(RunningProjectList, RunningProject{
+				Id:          ProjectID,
+				Pid:         cmd.Process.Pid,
+				ProjectName: projectName,
+				LaunchTime:  time.Now(),
+				QuitChan:    quitChan,
+			})
+
+			// wait for process end
+			err = cmd.Wait()
+			if err != nil {
+				golog.Error(err)
 			}
 
 			// remove running project log
@@ -163,6 +96,7 @@ func LaunchProject(projectName string, projectID int, quitChan <-chan int) {
 					// add database log
 					_, err := database.AddFinishedProjectLog(
 						runningProject.Id,
+						runningProject.Pid,
 						runningProject.ProjectName,
 						runningProject.LaunchTime)
 					if err != nil {
@@ -175,8 +109,21 @@ func LaunchProject(projectName string, projectID int, quitChan <-chan int) {
 			RunningProjectList = append(RunningProjectList[:projectIdx],
 				RunningProjectList[projectIdx+1:]...)
 
-			// initiative return is needed, or it will run continuously
 			return
 		}
 	}
+}
+
+// KillProcessWithPid kill process using taskkill
+/**
+ * @param pid: process id
+ * @return error: error
+ */
+func KillProcessWithPid(pid int) error {
+	cmd := exec.Command("taskkill", "/PID", strconv.Itoa(pid), "/F")
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+	return nil
 }
