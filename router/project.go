@@ -5,11 +5,11 @@
 package router
 
 import (
-	"context"
 	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12"
+	"log"
 	"prometheus/api/database"
-	"prometheus/api/project"
+	. "prometheus/api/project"
 	. "prometheus/model"
 	"time"
 )
@@ -22,7 +22,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 	// get project information
 	projectAPIRouter.Get("/getProjectInfo", func(ctx iris.Context) {
 		// get project list
-		projectList, err := project.GetProjectList()
+		projectList, err := GetProjectList()
 		if err != nil {
 			ctx.StatusCode(500)
 			_, err := ctx.JSON(iris.Map{
@@ -69,7 +69,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		CurrProject = projectJSON.ProjectName
 
 		// get file information list
-		fileInfoList, err := project.GetProjectFile()
+		fileInfoList, err := GetProjectFile()
 		if err != nil {
 			ctx.StatusCode(500)
 			_, err := ctx.JSON(iris.Map{
@@ -109,7 +109,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		}
 
 		// create project dir
-		_, err := project.CreateProjectDir(projectJSON.ProjectName)
+		_, err := CreateProjectDir(projectJSON.ProjectName)
 		if err != nil {
 			ctx.StatusCode(500)
 			_, err := ctx.JSON(iris.Map{
@@ -154,7 +154,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		}
 
 		// delete project
-		_, err := project.DeleteProject(projectJSON.ProjectName)
+		_, err := DeleteProject(projectJSON.ProjectName)
 		if err != nil {
 			ctx.StatusCode(500)
 			_, err := ctx.JSON(iris.Map{
@@ -199,7 +199,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		}
 
 		// create virtual environment
-		_, err := project.CreateVirtualEnv(projectJSON.ProjectName)
+		_, err := CreateVirtualEnv(projectJSON.ProjectName)
 		if err != nil {
 			ctx.StatusCode(500)
 			_, err := ctx.JSON(iris.Map{
@@ -244,7 +244,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		}
 
 		// install package requirement
-		_, err := project.InstallRequirement(projectJSON.ProjectName)
+		_, err := InstallRequirement(projectJSON.ProjectName)
 		if err != nil {
 			ctx.StatusCode(500)
 			_, err := ctx.JSON(iris.Map{
@@ -289,7 +289,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		}
 
 		// get pip list
-		_, err := project.GetPipList(projectJSON.ProjectName)
+		_, err := GetPipList(projectJSON.ProjectName)
 		if err != nil {
 			ctx.StatusCode(500)
 			_, err := ctx.JSON(iris.Map{
@@ -322,7 +322,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		projectName := ctx.GetCookie("projectName")
 		CurrProject = projectName
 		// save data file
-		filename, err := project.UploadFile(ctx)
+		filename, err := UploadFile(ctx)
 		if err != nil {
 			ctx.StopWithStatus(iris.StatusInternalServerError)
 			return
@@ -378,7 +378,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		golog.Info("Delete data: " + paramJSON.Filename + " in project: " + paramJSON.ProjectName)
 		// update current project information
 		CurrProject = paramJSON.ProjectName
-		_, err := project.DeleteFile(paramJSON.Filename)
+		_, err := DeleteFile(paramJSON.Filename)
 		// error in delete data
 		if err != nil {
 			_, err = ctx.JSON(iris.Map{
@@ -416,34 +416,16 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 				panic(err)
 			}
 		}
+
 		// update current project
 		CurrProject = paramJSON.ProjectName
-		// create project goroutine context
-		projectCtx, cancel := context.WithCancel(GloCtx)
-		// create quit channel
-		quitChan := make(chan int)
 		// add project id
 		ProjectID++
-		// add running project record
-		RunningProjectList = append(RunningProjectList, RunningProject{
-			Id:          ProjectID,
-			ProjectName: paramJSON.ProjectName,
-			Ctx:         projectCtx,
-			CancelFunc:  cancel,
-			LaunchTime:  time.Now(),
-			QuitChan:    quitChan,
-		})
+		// make quit channel
+		quitChan := make(chan int)
 
 		// launch model
-		go project.LaunchProject(paramJSON.ProjectName, ProjectID, quitChan)
-
-		// debug code here
-
-		//time.Sleep(5 * time.Second)
-		//close(quitChan)
-		//cancel()
-
-		// debug code end
+		go LaunchProject(paramJSON.ProjectName, ProjectID, quitChan)
 
 		// return response
 		ctx.StatusCode(200)
@@ -465,6 +447,7 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 		for _, runningProject := range RunningProjectList {
 			runningProjectList = append(runningProjectList, FinishedProjectInfo{
 				Id:          runningProject.Id,
+				Pid:         runningProject.Pid,
 				ProjectName: runningProject.ProjectName,
 				Status:      "Running",
 				LaunchTime:  runningProject.LaunchTime,
@@ -513,13 +496,23 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 			if runningProject.Id == paramJSON.Id {
 				// mark project id
 				projectIdx = idx
+
 				// cancel running project goroutine
-				//close(runningProject.QuitChan)
-				runningProject.CancelFunc()
+				err := KillProcessWithPid(runningProject.Pid)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				// close quit channel
+				close(runningProject.QuitChan)
+
 				// add kill project log to database
-				_, err := database.AddKilledProjectLog(runningProject.Id,
+				_, err = database.AddKilledProjectLog(
+					runningProject.Id,
+					runningProject.Pid,
 					runningProject.ProjectName,
 					runningProject.LaunchTime)
+
 				if err != nil {
 					panic(err)
 				}
