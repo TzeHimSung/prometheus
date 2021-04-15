@@ -5,12 +5,13 @@
 package project
 
 import (
-	"context"
 	"github.com/kataras/golog"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"prometheus/api/database"
-	"prometheus/model"
+	. "prometheus/model"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -22,16 +23,31 @@ const (
 	OutputTimeFormat = "2006-01-02-15-04-05"
 )
 
-func LaunchProject(projectName string, projectID int, ctx context.Context) {
+var (
+	// ProjectID project id counter
+	ProjectID = 0
+	// RunningProjectList running project list
+	RunningProjectList = make([]RunningProject, 0)
+)
+
+// LaunchProject launch specific project
+/**
+ * @param projectName: project name
+ * @param projectID: project id
+ * @param ctx: context related to project
+ */
+func LaunchProject(projectName string, projectID int, quitChan chan int) {
 	for {
 		select {
-		case <-ctx.Done():
-			golog.Warn("Project " + projectName + " is canceled.")
+		case <-quitChan:
+			// quit launch goroutine
+			golog.Warn("Project " + projectName + " has been canceled.")
 			return
 		default:
-			golog.Info("Launch project: " + projectName)
+			golog.Info("Launching project: " + projectName)
 
 			// create output dir
+			golog.Info("Create output dir...")
 			outputPath := OutputRootPath + "proj-" +
 				strings.Replace(projectName, ".", "-", -1) +
 				"-" + time.Now().Format(OutputTimeFormat)
@@ -43,40 +59,44 @@ func LaunchProject(projectName string, projectID int, ctx context.Context) {
 					return
 				}
 			}
-			golog.Info("Output path check passed. Launching project...")
+			golog.Info("Output path check passed. Start project...")
 
 			// launch project
 			// need to check main.py exists or not
-			launchFilePath := model.ProjectPath + "/" + projectName + "/main.py"
-			venvActiveCmd := "uploads\\project\\" + projectName + "\\venv\\Scripts\\activate.bat"
+			launchFilePath := filepath.Join(ProjectPath, projectName, "main.py")
+			venvActiveCmd := filepath.Join(ProjectPath, projectName, "venv", "Scripts", "activate.bat")
 			cmd := exec.Command(venvActiveCmd, "&&", "python", launchFilePath)
-			golog.Info("Project is launching")
-			out, err := cmd.Output()
+
+			err = cmd.Start()
 			if err != nil {
 				golog.Error("Error in project " + projectName + " launching process")
 				panic(err)
 			}
-			golog.Info("Project launch process finished. Create output file...")
+			golog.Info("Project is running, pid: ", cmd.Process.Pid)
 
-			// create output file
-			f, err := os.Create(outputPath + "/output.txt")
-			defer f.Close()
+			// add running project record
+			RunningProjectList = append(RunningProjectList, RunningProject{
+				Id:          ProjectID,
+				Pid:         cmd.Process.Pid,
+				ProjectName: projectName,
+				LaunchTime:  time.Now(),
+				QuitChan:    quitChan,
+			})
+
+			// wait for process end
+			err = cmd.Wait()
 			if err != nil {
-				panic(err)
-			} else {
-				// save output to output.txt
-				_, err := f.Write(out)
-				if err != nil {
-					panic(err)
-				}
-				golog.Info("Output file is created.")
+				golog.Error(err)
 			}
 
 			// remove running project log
-			var projectIdx int = 0
-			for idx, runningProject := range model.RunningProjectList {
+			var projectIdx = 0
+			for idx, runningProject := range RunningProjectList {
 				if runningProject.Id == projectID {
-					_, err := database.AddFinishedProjectLog(runningProject.Id,
+					// add database log
+					_, err := database.AddFinishedProjectLog(
+						runningProject.Id,
+						runningProject.Pid,
 						runningProject.ProjectName,
 						runningProject.LaunchTime)
 					if err != nil {
@@ -86,11 +106,24 @@ func LaunchProject(projectName string, projectID int, ctx context.Context) {
 					break
 				}
 			}
-			model.RunningProjectList = append(model.RunningProjectList[:projectIdx],
-				model.RunningProjectList[projectIdx+1:]...)
+			RunningProjectList = append(RunningProjectList[:projectIdx],
+				RunningProjectList[projectIdx+1:]...)
 
-			// initiative return is needed, or it will run continuously
 			return
 		}
 	}
+}
+
+// KillProcessWithPid kill process using taskkill
+/**
+ * @param pid: process id
+ * @return error: error
+ */
+func KillProcessWithPid(pid int) error {
+	cmd := exec.Command("taskkill", "/PID", strconv.Itoa(pid), "/F")
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+	return nil
 }

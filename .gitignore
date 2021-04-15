@@ -31,3 +31,7 @@ dist
 
 # model output
 runmodel/output
+
+# template virtual environment
+template/venv
+template

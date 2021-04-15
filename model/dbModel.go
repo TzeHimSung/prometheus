@@ -29,6 +29,7 @@ type FinishedModelInfo struct {
 
 type FinishedProjectInfo struct {
 	Id          int       `json:"id" xorm:"int"`                   // project id
+	Pid         int       `json:"pid" xorm:"int"`                  // progress id
 	ProjectName string    `json:"projectName" xorm:"varchar(255)"` // project name
 	Status      string    `json:"status" xorm:"varchar(255)"`      // project status
 	LaunchTime  time.Time `json:"launchTime" xorm:"DateTime"`      // project launch time

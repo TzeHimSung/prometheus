@@ -302,9 +302,10 @@ func QueryFinishedProjectLog() ([]model.FinishedProjectInfo, error) {
  * @return bool: result of adding process
  * @return error: error
  */
-func AddFinishedProjectLog(projectID int, projectName string, launchTime time.Time) (bool, error) {
+func AddFinishedProjectLog(projectID int, projectPID int, projectName string, launchTime time.Time) (bool, error) {
 	projectLog := model.FinishedProjectInfo{
 		Id:          projectID,
+		Pid:         projectPID,
 		ProjectName: projectName,
 		Status:      "Finished",
 		LaunchTime:  launchTime,
@@ -324,9 +325,10 @@ func AddFinishedProjectLog(projectID int, projectName string, launchTime time.Ti
  * @return bool: result of adding process
  * @return error: error
  */
-func AddKilledProjectLog(projectID int, projectName string, launchTime time.Time) (bool, error) {
+func AddKilledProjectLog(projectID int, projectPID int, projectName string, launchTime time.Time) (bool, error) {
 	projectLog := model.FinishedProjectInfo{
 		Id:          projectID,
+		Pid:         projectPID,
 		ProjectName: projectName,
 		Status:      "Killed",
 		LaunchTime:  launchTime,
