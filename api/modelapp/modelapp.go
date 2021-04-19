@@ -12,13 +12,20 @@ import (
  * @Description: get model result dir list
  * @return []string: model result dir list
  */
-func GetModelResultDir() []string {
+func GetModelResultDir() ([]string, error) {
 	dirList := make([]string, 0)
-	files, _ := ioutil.ReadDir(model.ModelOutputPath)
+	files, err := ioutil.ReadDir(model.ModelOutputPath)
+	if err != nil {
+		return nil, err
+	}
 	for _, file := range files {
 		if file.IsDir() {
 			dirList = append(dirList, file.Name())
 		}
 	}
-	return dirList
+	return dirList, nil
+}
+
+func LoadProjectResult(dirName string) string {
+	return ""
 }
