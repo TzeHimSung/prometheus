@@ -34,4 +34,4 @@ runmodel/output
 
 # template virtual environment
 template/venv
-template
+!template/toolbox
