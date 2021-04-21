@@ -20,7 +20,7 @@ func ModelAppInit(modelAppRouter iris.Party) {
 	// get project result
 	modelAppRouter.Get("/getProjectResult", func(ctx iris.Context) {
 		// get project output dir
-		projectResultList, err := GetModelResultDir()
+		projectResultList, err := GetProjectResultDir()
 		if err != nil {
 			ctx.StatusCode(500)
 			_, err := ctx.JSON(iris.Map{
@@ -65,12 +65,23 @@ func ModelAppInit(modelAppRouter iris.Party) {
 			}
 		}
 
-		// todo: loadProjectResult
-		res := LoadProjectResult(paramJSON.OutputDirName)
+		// read project result
+		res, err := LoadProjectResult(paramJSON.OutputDirName)
+		if err != nil {
+			ctx.StatusCode(500)
+			_, err := ctx.JSON(iris.Map{
+				"status":  "error",
+				"message": err,
+			})
+			if err != nil {
+				ctx.StopWithStatus(iris.StatusInternalServerError)
+				return
+			}
+		}
 
 		// return response
 		ctx.StatusCode(200)
-		_, err := ctx.JSON(iris.Map{
+		_, err = ctx.JSON(iris.Map{
 			"status":  0,
 			"content": res,
 		})
