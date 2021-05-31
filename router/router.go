@@ -1,6 +1,4 @@
-/**
- * @Description: route configuration
- */
+// Package router route configuration
 package router
 
 import (
@@ -8,8 +6,8 @@ import (
 	"github.com/kataras/iris/v12"
 )
 
+// Hub route initialization
 /**
- * @Description: route initialization
  * @param app: iris application
  */
 func Hub(app *iris.Application) {

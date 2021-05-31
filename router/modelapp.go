@@ -4,16 +4,15 @@
 package router
 
 import (
+	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12"
+	"path/filepath"
 	. "prometheus/api/modelapp"
+	"prometheus/api/project"
 )
 
-var (
-	ProjectResultList []string
-)
-
+// ModelAppInit modelapp page router initialization
 /**
- * @Description: modelapp page router initialization
  * @param modelAppRouter: modelapp page router
  */
 func ModelAppInit(modelAppRouter iris.Party) {
@@ -32,8 +31,6 @@ func ModelAppInit(modelAppRouter iris.Party) {
 				return
 			}
 		}
-		// update project result list
-		ProjectResultList = projectResultList
 
 		// return response
 		ctx.StatusCode(200)
@@ -88,6 +85,21 @@ func ModelAppInit(modelAppRouter iris.Party) {
 		if err != nil {
 			ctx.StopWithStatus(iris.StatusInternalServerError)
 			return
+		}
+	})
+
+	modelAppRouter.Post("/downloadResult", func(ctx iris.Context) {
+		var paramJSON struct {
+			ResultDirName string `json:"resultDirName"`
+		}
+		if err := ctx.ReadJSON(&paramJSON); err != nil {
+			panic(err)
+		}
+		golog.Info("Download project result: " + paramJSON.ResultDirName)
+		err := ctx.SendFile(filepath.Join(project.OutputRootPath, paramJSON.ResultDirName, "output.json"),
+			"output.json")
+		if err != nil {
+			panic(err)
 		}
 	})
 }
