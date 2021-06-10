@@ -7,7 +7,6 @@ package router
 import (
 	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12"
-	"log"
 	"prometheus/api/database"
 	. "prometheus/api/project"
 	. "prometheus/model"
@@ -497,17 +496,20 @@ func projectAPIInit(projectAPIRouter iris.Party) {
 				// mark project id
 				projectIdx = idx
 
-				// cancel running project goroutine
-				err := KillProcessWithPid(runningProject.Pid)
-				if err != nil {
-					log.Fatal(err)
-				}
+				//// cancel running project goroutine
+				//err := KillProcessWithPid(runningProject.Pid)
+				//if err != nil {
+				//	log.Fatal(err)
+				//}
+
+				// cancel running project goroutine, ignore error
+				_ = KillProcessWithPid(runningProject.Pid)
 
 				// close quit channel
 				close(runningProject.QuitChan)
 
 				// add kill project log to database
-				_, err = database.AddKilledProjectLog(
+				_, err := database.AddKilledProjectLog(
 					runningProject.Id,
 					runningProject.Pid,
 					runningProject.ProjectName,
